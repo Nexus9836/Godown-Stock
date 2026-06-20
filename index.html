@@ -1,0 +1,2132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Garments Tracker Dashboard</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background-color: #e2e8f0; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+        
+        /* 🏠 Homepage Dashboard Styles */
+        #homepage { flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 20px; text-align: center; }
+        .main-title { color: #1e293b; font-size: 26px; margin-bottom: 40px; border-bottom: 3px solid #3b82f6; padding-bottom: 12px; text-transform: uppercase; }
+        .nav-btn { width: 100%; max-width: 350px; padding: 20px; margin: 15px 0; font-size: 18px; font-weight: bold; color: white; border: none; border-radius: 10px; cursor: pointer; transition: transform 0.2s, background 0.2s; box-shadow: 0 4px 6px rgba(0,0,0,0.1); display: flex; align-items: center; justify-content: center; gap: 10px; }
+        .btn-godown { background-color: #3b82f6; }
+        .btn-godown:hover { background-color: #2563eb; transform: translateY(-3px); box-shadow: 0 6px 12px rgba(59,130,246,0.3); }
+        .btn-cutter { background-color: #f97316; }
+        .btn-cutter:hover { background-color: #ea580c; transform: translateY(-3px); box-shadow: 0 6px 12px rgba(249,115,22,0.3); }
+        
+        /* 💻 App Container & Back Button Styles */
+        #app_container { display: none; flex-direction: column; height: 100vh; width: 100%; }
+        .top-bar { background-color: #1e293b; padding: 12px 20px; display: flex; align-items: center; box-shadow: 0 2px 5px rgba(0,0,0,0.2); z-index: 10; }
+        .back-btn { background-color: #ef4444; color: white; border: none; padding: 8px 16px; font-size: 14px; font-weight: bold; border-radius: 6px; cursor: pointer; transition: 0.2s; display: flex; align-items: center; gap: 5px; }
+        .back-btn:hover { background-color: #dc2626; }
+        .app-title { color: #f8fafc; margin-left: 20px; font-size: 16px; font-weight: bold; letter-spacing: 0.5px; }
+        #app_iframe { flex: 1; width: 100%; border: none; background-color: #f4f7f6; }
+    </style>
+</head>
+<body>
+
+    <div id="homepage">
+        <h1 class="main-title">🏭 Garments Factory Dashboard</h1>
+        <button class="nav-btn btn-godown" onclick="openApp('godown')">📦 Enter PRODUCTION GODOWN</button>
+        <button class="nav-btn btn-cutter" onclick="openApp('cutter')">✂️ Enter CUTTER GODOWN</button>
+    </div>
+
+    <div id="app_container">
+        <div class="top-bar">
+            <button class="back-btn" onclick="goHome()">⬅ Back to Home</button>
+            <span class="app-title" id="current_app_title"></span>
+        </div>
+        <iframe id="app_iframe"></iframe>
+    </div>
+
+    <textarea id="godown_source" style="display:none;">
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Garments Lot & Cutter Inventory Tracker - Godown</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background-color: #f4f7f6; padding: 15px; color: #333; }
+        .container { max-width: 600px; margin: 0 auto; background: #fff; padding: 20px; border-radius: 10px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
+        .container h2 { text-align: center; color: #2c3e50; margin-bottom: 10px; font-size: 22px; border-bottom: 2px solid #3498db; padding-bottom: 10px; }
+        .btn-testing-clear { background-color: #e74c3c; color: white; padding: 10px; font-size: 13px; font-weight: bold; border: none; border-radius: 6px; cursor: pointer; margin-bottom: 15px; width: 100%; text-align: center; text-transform: uppercase; box-shadow: 0 2px 4px rgba(231, 76, 60, 0.3); }
+        .btn-testing-clear:hover { background-color: #c0392b; }
+        .navigation-tabs { display: flex; margin-bottom: 20px; border-radius: 8px; overflow: hidden; border: 1px solid #3498db; }
+        .tab-btn { flex: 1; padding: 12px; background: #fff; color: #3498db; font-weight: bold; font-size: 14px; cursor: pointer; text-align: center; transition: all 0.3s ease; border: none; border-radius: 0; }
+        .tab-btn.active { background: #3498db; color: #fff; }
+        .page-content { display: none; }
+        .page-content.active { display: block; }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; color: #34495e; font-size: 14px; }
+        input, select { width: 100%; padding: 12px; border: 1px solid #bdc3c7; border-radius: 6px; font-size: 16px; outline: none; }
+        input[type="text"] { text-transform: uppercase; }
+        input:focus, select:focus { border-color: #3498db; }
+        .select-container { display: table; width: 100%; }
+        .select-cell { display: table-cell; vertical-align: middle; }
+        .btn-cell-plus, .btn-cell-delete { display: table-cell; width: 45px; padding-left: 8px; vertical-align: middle; }
+        .btn-plus { width: 100%; padding: 11px; background-color: #3498db; color: white; font-size: 18px; font-weight: bold; border: none; border-radius: 6px; cursor: pointer; }
+        .btn-plus:hover { background-color: #2980b9; }
+        .btn-delete-dropdown { width: 100%; padding: 11px; background-color: #e74c3c; color: white; font-size: 16px; font-weight: bold; border: none; border-radius: 6px; cursor: pointer; }
+        .btn-delete-dropdown:hover { background-color: #c0392b; }
+        .btn-group { display: table; width: 100%; margin-top: 10px; margin-bottom: 15px; }
+        .btn-cell { display: table-cell; width: 50%; padding: 0 5px; }
+        button { width: 100%; padding: 12px; border: none; color: white; font-size: 16px; font-weight: bold; border-radius: 6px; cursor: pointer; transition: background 0.2s; }
+        .btn-save { background-color: #2ecc71; margin-bottom: 15px; width: 100%; display: block; }
+        .btn-save:hover { background-color: #27ae60; }
+        .btn-export { background-color: #3498db; }
+        .btn-export:hover { background-color: #2980b9; }
+        .btn-import { background-color: #9b59b6; }
+        .btn-import:hover { background-color: #8e44ad; }
+        .backup-section { background: #fcf8e3; border: 1px solid #fbeed5; padding: 12px; border-radius: 6px; margin-top: 15px; }
+        .backup-title { font-size: 14px; font-weight: bold; color: #c09853; margin-bottom: 8px; text-align: center; }
+        .summary-box { background: #e8f4f8; padding: 15px; border-radius: 6px; margin-top: 20px; border-left: 5px solid #3498db; }
+        .summary-box p { margin-bottom: 5px; font-size: 15px; }
+        .summary-box span { font-weight: bold; color: #2c3e50; }
+        .search-section { margin-top: 25px; background: #f8f9fa; padding: 12px; border-radius: 6px; border: 1px solid #e2e8f0; }
+        .search-input { border: 2px solid #3498db; background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="%233498db" class="bi bi-search" viewBox="0 0 16 16"><path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z"/></svg>'); background-repeat: no-repeat; background-position: 12px center; padding-left: 38px; text-transform: uppercase; }
+        .history-section { margin-top: 15px; }
+        .history-title { font-size: 18px; color: #2c3e50; margin-bottom: 10px; }
+        .record-card { background: #fdfefe; border: 1px solid #e2e8f0; padding: 15px; border-radius: 6px; margin-bottom: 15px; position: relative; box-shadow: 0 2px 4px rgba(0,0,0,0.02); }
+        .record-card p { font-size: 14px; margin-bottom: 5px; }
+        .stock-display-grid { background: #f8f9fa; padding: 8px; border-radius: 6px; font-size: 13px; margin-top: 5px; margin-bottom: 5px; border: 1px solid #cbd5e1; }
+        .card-expanded-details { border-top: 1px dashed #cbd5e1; margin-top: 10px; padding-top: 5px; }
+        .card-action-panel-mini { background: #f0f7ff !important; padding: 8px !important; border-radius: 6px !important; margin-top: 6px !important; border: 1px solid #b3d7ff !important; }
+        .panel-title-mini { font-size: 11px !important; font-weight: bold !important; color: #0056b3 !important; margin-bottom: 5px !important; text-transform: uppercase !important; padding-bottom: 2px !important; }
+        .action-row-split-mini { display: flex !important; gap: 4px !important; margin-bottom: 0px !important; align-items: center !important; }
+        .action-row-split-mini input, .action-row-split-mini select { flex: 1 !important; padding: 5px 8px !important; font-size: 12px !important; border-radius: 4px !important; border: 1px solid #b3d7ff !important; height: 32px !important; }
+        .transfer-btn-mini { width: 30% !important; padding: 6px 4px !important; font-size: 11px !important; border-radius: 4px !important; font-weight: bold !important; white-space: nowrap !important; height: 32px !important; background-color: #3498db !important; color: white !important; }
+        .transfer-btn-mini:hover { background-color: #2980b9 !important; }
+        .card-footer-buttons-mini { display: flex !important; justify-content: flex-end !important; gap: 5px !important; margin-top: 8px !important; border-top: 1px dashed #edf2f7 !important; padding-top: 6px !important; }
+        .gsm-btn-mini { background-color: #16a085 !important; color: white !important; width: auto !important; padding: 4px 10px !important; font-size: 11px !important; border-radius: 4px !important;}
+        .edit-btn-mini { background-color: #7f8c8d !important; color: white !important; width: auto !important; padding: 4px 10px !important; font-size: 11px !important; border-radius: 4px !important;}
+        .delete-btn-mini { background-color: #e74c3c !important; color: white !important; width: auto !important; padding: 4px 10px !important; font-size: 11px !important; border-radius: 4px !important;}
+        #fileInput { display: none !important; }
+        .entry-form-block { background: #fafbfc; padding: 12px; border-radius: 8px; border: 1px solid #cbd5e1; margin-bottom: 15px; }
+        .entry-form-block .form-group { margin-bottom: 8px; }
+        .entry-form-block label { font-size: 12px !important; color: #475569; margin-bottom: 2px; }
+        .entry-form-block input, .entry-form-block select { padding: 6px 10px !important; font-size: 13px !important; height: 34px !important; border-radius: 4px !important; }
+        .entry-form-block .btn-plus, .entry-form-block .btn-delete-dropdown { padding: 0 !important; font-size: 15px !important; height: 34px !important; border-radius: 4px !important; line-height: 34px; }
+        .entry-form-block .btn-cell-plus, .entry-form-block .btn-cell-delete { width: 38px !important; padding-left: 5px !important; }
+        .entry-form-row { display: flex !important; gap: 8px !important; }
+        .entry-form-col { flex: 1 !important; }
+        .card-action-panel { background: #f1f5f9; padding: 10px; border-radius: 6px; margin-top: 8px; border: 1px solid #e2e8f0; margin-bottom: 15px; }
+        .panel-title { font-size: 12px; font-weight: bold; color: #475569; margin-bottom: 8px; text-transform: uppercase; border-bottom: 1px solid #cbd5e1; padding-bottom: 3px; }
+        .action-row-split { display: flex; gap: 5px; margin-bottom: 6px; align-items: center; }
+        .action-row-split input, .action-row-split select { flex: 1; padding: 8px; font-size: 13px; border-radius: 4px; border: 1px solid #cbd5e1; height: 35px; }
+        .action-row-split button { width: 35%; padding: 8px 4px; font-size: 11px; border-radius: 4px; font-weight: bold; white-space: nowrap; height: 35px; }
+        .layer-build-box { background: #fff6fa; border: 1px solid #f9dbe7; padding: 10px; border-radius: 6px; margin-top: 10px; }
+        .layer-item-tag { display: inline-block; background: #2b6cb0; color: white; padding: 3px 8px; font-size: 11px; border-radius: 4px; margin: 2px; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>Lot & Fabric Cutting Tracker - Godown Room</h2>
+    
+    <button type="button" class="btn-testing-clear" onclick="clearAllTestDataShortcut()">🗑️ Clear All Test Data (Testing Mode Shortcut)</button>
+
+    <div id="warehouse_page" class="page-content active">
+        <div class="entry-form-block">
+            <div class="form-group">
+                <label for="fabricSelect">Fabric Quality / Name:</label>
+                <div class="select-container">
+                    <div class="select-cell">
+                        <select id="fabricSelect" onchange="checkFabricType()">
+                            <option value="">-- Select Quality --</option>
+                        </select>
+                    </div>
+                    <div class="btn-cell-plus">
+                        <button type="button" class="btn-plus" onclick="addNewFabric()" title="Add New Quality">+</button>
+                    </div>
+                    <div class="btn-cell-delete">
+                        <button type="button" class="btn-delete-dropdown" onclick="deleteFabricFromList()" title="Delete Selected Quality">🗑️</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="entry-form-row">
+                <div class="entry-form-col">
+                    <div class="form-group">
+                        <label for="lotNumber">Lot Number (Lot No):</label>
+                        <input type="text" id="lotNumber" placeholder="e.g. LOT-101" oninput="this.value = this.value.toUpperCase()">
+                    </div>
+                </div>
+                <div class="entry-form-col" id="batchNumberCol">
+                    <div class="form-group">
+                        <label for="batchNumber">Batch Number (Batch No):</label>
+                        <input type="text" id="batchNumber" placeholder="e.g. B-01" oninput="this.value = this.value.toUpperCase()">
+                    </div>
+                </div>
+            </div>
+
+            <div class="entry-form-row">
+                <div class="entry-form-col" id="fabricColorCol">
+                    <div class="form-group">
+                        <label for="fabricColor">Fabric Color:</label>
+                        <input type="text" id="fabricColor" placeholder="e.g. BLACK" oninput="this.value = this.value.toUpperCase()">
+                    </div>
+                </div>
+                <div class="entry-form-col">
+                    <div class="form-group">
+                        <label for="gsmInput">GSM:</label>
+                        <input type="number" id="gsmInput" inputmode="numeric" placeholder="e.g. 180">
+                    </div>
+                </div>
+            </div>
+
+            <div id="grsRibBox" class="grs-box" style="display: none; margin-bottom: 8px; background: #f4fafb; padding: 8px; border: 1px solid #d1f2f7; border-radius: 6px;">
+                <div class="entry-form-row">
+                    <div class="entry-form-col">
+                        <div class="form-group">
+                            <label for="grsBodyWeight" style="color: #2980b9;">GRS Body Weight (Kg):</label>
+                            <input type="number" id="grsBodyWeight" step="0.01" inputmode="decimal" placeholder="0.00">
+                        </div>
+                    </div>
+                    <div class="entry-form-col">
+                        <div class="form-group">
+                            <label for="grsRibWeight" style="color: #2980b9;">Rib Weight (Kg):</label>
+                            <input type="number" id="grsRibWeight" step="0.01" inputmode="decimal" placeholder="0.00">
+                        </div>
+                    </div>
+                </div>
+                <div class="entry-form-row" style="margin-top: 4px;">
+                    <div class="entry-form-col">
+                        <div class="form-group">
+                            <label for="ribLotNumber" style="color: #2980b9;">Rib Lot No:</label>
+                            <input type="text" id="ribLotNumber" placeholder="R-LOT No" oninput="this.value = this.value.toUpperCase()">
+                        </div>
+                    </div>
+                    <div class="entry-form-col">
+                        <div class="form-group">
+                            <label for="ribBatchNumber" style="color: #2980b9;">Rib Batch No:</label>
+                            <input type="text" id="ribBatchNumber" placeholder="R-B No" oninput="this.value = this.value.toUpperCase()">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-group" id="normalWeightBox">
+                <label for="rollWeight">Received Total Fabric Weight (Kg):</label>
+                <input type="number" id="rollWeight" step="0.01" inputmode="decimal" placeholder="0.00">
+            </div>
+
+            <div id="poloWeightBox" class="polo-box" style="display: none; margin-bottom: 8px; background: #f4fbf7; padding: 8px; border: 1px solid #d4efdf; border-radius: 6px;">
+                <div class="entry-form-row">
+                    <div class="entry-form-col">
+                        <div class="form-group">
+                            <label for="bodyWeight" style="color: #27ae60;">Polo Body Weight (Kg):</label>
+                            <input type="number" id="bodyWeight" step="0.01" inputmode="decimal" placeholder="0.00">
+                        </div>
+                    </div>
+                    <div class="entry-form-col">
+                        <div class="form-group">
+                            <label for="collarWeight" style="color: #27ae60;">Collar/Cuff Wt (Kg):</label>
+                            <input type="number" id="collarWeight" step="0.01" inputmode="decimal" placeholder="0.00">
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <button type="button" class="btn-save" onclick="addStock()">Add New Lot to Godown</button>
+        </div>
+
+        <div class="card-action-panel" style="background: #f2f5fe; border-color: #b3d7ff;">
+            <div class="panel-title" style="color: #2980b9;">📦 CREATE NEW LOT</div>
+            <div class="action-row-split">
+                <input type="text" id="godownLayerNewLotNumber" placeholder="NEW MERGED LOT NO" oninput="this.value = this.value.toUpperCase()">
+                <input type="number" id="godownLayerNewGsm" inputmode="numeric" placeholder="GSM (Optional)">
+            </div>
+            <div class="action-row-split" style="margin-top: 4px;">
+                <select id="godownLayerSourceLotSelect"><option value="">-- Loading Godown Lots --</option></select>
+                <button type="button" style="background: #3498db;" onclick="addLotToGodownLayerQueue()">➕ Add Lot</button>
+            </div>
+            <div class="layer-build-box" style="background: #f4f8ff; border-color: #bee3f8;">
+                <div style="font-size: 11px; font-weight: bold; color: #2b6cb0; margin-bottom: 3px;">Selected Lots inside current merge queue:</div>
+                <div id="godownLayerSelectedItemsContainer" style="font-size: 12px; color: #2b6cb0; font-style: italic;">No lots queued up yet.</div>
+            </div>
+            <button type="button" style="background:#2b6cb0; text-align:center; color:white; cursor:pointer; font-size:13px; font-weight:bold; padding:10px; border-radius:6px; margin-top:10px; width:100%;" onclick="executeFinalGodownLayerMerge()">Create Merged Godown Lot 📦</button>
+        </div>
+
+        <div class="backup-section">
+            <div class="backup-title">Data Backup & Recovery Options</div>
+            <div class="btn-group">
+                <div class="btn-cell">
+                    <button type="button" class="btn-export" onclick="exportData()">Export File</button>
+                </div>
+                <div class="btn-cell">
+                    <button type="button" class="btn-import" onclick="triggerImport()">Import File</button>
+                </div>
+            </div>
+            <input type="file" id="fileInput" accept=".json" onchange="importData(event)">
+        </div>
+
+        <div class="summary-box">
+            <p>Total Received Fabric in Godown: <span id="totalRollWeight">0.000</span> Kg</p>
+            <p>Total Fabric Cut till date: <span id="totalCuttingWeight">0.000</span> Kg</p>
+            <p>Current Total Stock Balance: <span id="totalStock">0.000</span> Kg</p>
+        </div>
+
+        <div class="search-section">
+            <label for="searchInput" style="color: #3498db;">Quick Search Lot Box:</label>
+            <input type="text" id="searchInput" class="search-input" onkeyup="filterLots()" placeholder="Search by Lot No, Quality or Color...">
+        </div>
+
+        <div class="history-section">
+            <div class="history-title">📦 Godown Current Stock List:</div>
+            <div id="warehouseRecordsList"></div>
+        </div>
+    </div>
+</div>
+
+<script>
+    let godownLayerQueue = [];
+
+    document.addEventListener("DOMContentLoaded", function() {
+        loadFabricList();
+        loadRecords();
+    });
+
+    function clearAllTestDataShortcut() {
+        if (confirm("Are you sure you want to completely erase all test data to fix code conflicts? This will give you a fresh clean slate.")) {
+            localStorage.removeItem('fabricRecords');
+            loadRecords();
+            alert("Test memory erased completely!");
+        }
+    }
+
+    function switchPage(pageId, btnEl) {
+        if (pageId === 'cutter_page') {
+            window.location.href = 'cutter.html';
+        }
+    }
+
+    function checkFabricType() {
+        const selectElement = document.getElementById('fabricSelect');
+        const fabricName = selectElement.value ? selectElement.value.toLowerCase() : "";
+        const normalBox = document.getElementById('normalWeightBox');
+        const poloBox = document.getElementById('poloWeightBox');
+        const grsRibBox = document.getElementById('grsRibBox');
+        
+        const batchCol = document.getElementById('batchNumberCol');
+        const colorCol = document.getElementById('fabricColorCol');
+        const normalLabel = normalBox ? normalBox.querySelector('label') : null;
+
+        if(normalBox) normalBox.style.display = 'block'; 
+        if(poloBox) poloBox.style.display = 'none'; 
+        if(grsRibBox) grsRibBox.style.display = 'none';
+        if(batchCol) batchCol.style.display = 'block';
+        if(colorCol) colorCol.style.display = 'block';
+        if(normalLabel) normalLabel.innerText = "Received Total Fabric Weight (Kg):";
+
+        if (fabricName.includes('polo')) { if(normalBox) normalBox.style.display = 'none'; if(poloBox) poloBox.style.display = 'block'; } 
+        else if (fabricName.includes('grs')) { if(normalBox) normalBox.style.display = 'none'; if(grsRibBox) grsRibBox.style.display = 'block'; }
+        else if (fabricName.includes('textile')) {
+            if(batchCol) batchCol.style.display = 'none';
+            if(colorCol) colorCol.style.display = 'none';
+            if(normalLabel) normalLabel.innerText = "Received Total Fabric Length (Mtr):";
+        }
+    }
+
+    function transformCutterOptionsHTML() {
+        const cutters = JSON.parse(localStorage.getItem('cutterList')) || ["A HOSIERY", "B HOSIERY", "C HOSIERY"];
+        let html = '<option value="">-- Select Cutter --</option>';
+        cutters.forEach(c => { html += `<option value="${c}">${c}</option>`; });
+        return html;
+    }
+
+    function addNewFabric() {
+        const fabricName = prompt("Enter New Fabric Quality/Name:");
+        if (fabricName === null) return;
+        const trimmedName = fabricName.trim().toUpperCase();
+        if (trimmedName === "") return;
+        let fabricList = JSON.parse(localStorage.getItem('fabricList')) || ["MICRO MODAL","PRINTED MODAL","GRS","RELAX POLO","TIPING POLO","FDY POLO"];
+        if (!fabricList.includes(trimmedName)) {
+            fabricList.push(trimmedName);
+            localStorage.setItem('fabricList', JSON.stringify(fabricList));
+        }
+        loadFabricList();
+        document.getElementById('fabricSelect').value = trimmedName;
+        checkFabricType();
+    }
+
+    function loadFabricList() {
+        const fabricList = JSON.parse(localStorage.getItem('fabricList')) || ["MICRO MODAL","PRINTED MODAL","GRS","RELAX POLO","TIPING POLO","FDY POLO"];
+        const select = document.getElementById('fabricSelect');
+        if(!select) return;
+        select.innerHTML = '<option value="">-- Select Quality --</option>';
+        fabricList.forEach(fabric => {
+            const option = document.createElement('option'); option.value = fabric; option.innerText = fabric; select.appendChild(option);
+        });
+    }
+
+    function deleteFabricFromList() {
+        const select = document.getElementById('fabricSelect');
+        if (!select || !select.value) { alert("Please select a fabric quality to delete!"); return; }
+        if (confirm(`Are you sure you want to permanently delete "${select.value}" from the quality list?`)) {
+            let fabricList = JSON.parse(localStorage.getItem('fabricList')) || ["MICRO MODAL","PRINTED MODAL","GRS","RELAX POLO","TIPING POLO","FDY POLO"];
+            fabricList = fabricList.filter(f => f !== select.value);
+            localStorage.setItem('fabricList', JSON.stringify(fabricList));
+            loadFabricList();
+            checkFabricType();
+            alert("Fabric quality deleted successfully!");
+        }
+    }
+
+    function populateGodownSourceLotDropdown(fabricRecords) {
+        const select = document.getElementById('godownLayerSourceLotSelect');
+        if (!select) return;
+        select.innerHTML = '<option value="">-- Select Lot to Merge --</option>';
+        fabricRecords.forEach(r => {
+            let availStock = r.isPolo || r.isGrs ? (r.remainingBodyWH + (r.isPolo ? r.remainingCollarWH : r.remainingRibWH)) : r.remainingGeneralWH;
+            if (availStock > 0.009 || availStock < -0.009) {
+                select.innerHTML += `<option value="${r.id}">${r.lotNumber} (Bal: ${availStock.toFixed(3)}k)</option>`;
+            }
+        });
+    }
+
+    function addLotToGodownLayerQueue() {
+        const lotId = parseInt(document.getElementById('godownLayerSourceLotSelect').value);
+        if (!lotId) return;
+        if (godownLayerQueue.some(item => item.id === lotId)) return;
+        
+        let records = JSON.parse(localStorage.getItem('fabricRecords')) || [];
+        let r = records.find(x => x.id === lotId);
+        if (!r) return;
+        
+        let maxAvailable = r.isPolo || r.isGrs ? (r.remainingBodyWH + (r.isPolo ? r.remainingCollarWH : r.remainingRibWH)) : r.remainingGeneralWH;
+        let mergeQtyInput = prompt(`Enter weight (Kg) to merge from Godown Lot ${r.lotNumber} (Max Available: ${maxAvailable.toFixed(3)} Kg):`, maxAvailable.toFixed(3));
+        if (mergeQtyInput === null) return;
+        
+        let mergeQty = parseFloat(mergeQtyInput);
+        if (isNaN(mergeQty) || mergeQty <= 0 || mergeQty > (maxAvailable + 0.009)) {
+            alert("Invalid quantity entered!");
+            return;
+        }
+
+        godownLayerQueue.push({ id: lotId, weight: mergeQty });
+        const container = document.getElementById('godownLayerSelectedItemsContainer');
+        container.innerHTML = '';
+        godownLayerQueue.forEach(item => {
+            let recordData = records.find(x => x.id === item.id);
+            container.innerHTML += `<span class="layer-item-tag" style="background:#2b6cb0;">🏷️ Lot: ${recordData.lotNumber} (${item.weight.toFixed(3)} Kg)</span> `;
+        });
+    }
+
+    function executeFinalGodownLayerMerge() {
+        const newLotNo = document.getElementById('godownLayerNewLotNumber').value.trim().toUpperCase();
+        if (!newLotNo || godownLayerQueue.length < 1) { alert("Please enter new Lot No and add at least 1 lot."); return; }
+
+        let records = JSON.parse(localStorage.getItem('fabricRecords')) || [];
+        const timestamp = new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+        const epochBase = Date.now();
+
+        let totalMergedWeight = 0, fabricQualitiesFound = [], fabricColorsList = [], historyTrackingNote = "Merged in Godown from Lots: ";
+
+        for (let i = 0; i < godownLayerQueue.length; i++) {
+            let item = godownLayerQueue[i];
+            let recIndex = records.findIndex(r => r.id === item.id);
+            if (recIndex === -1) continue;
+            let srcRec = records[recIndex];
+            let targetWeightToDeduct = item.weight;
+
+            totalMergedWeight += targetWeightToDeduct;
+            fabricQualitiesFound.push(srcRec.fabricName);
+            fabricColorsList.push(srcRec.fabricColor || "NO COLOR");
+            historyTrackingNote += `${srcRec.lotNumber} (${targetWeightToDeduct.toFixed(3)} Kg), `;
+
+            if (srcRec.isPolo || srcRec.isGrs) {
+                let rem = targetWeightToDeduct;
+                if (srcRec.isPolo) {
+                    let deductBody = Math.min(rem, srcRec.remainingBodyWH);
+                    srcRec.remainingBodyWH -= deductBody;
+                    rem -= deductBody;
+                    if (rem > 0) srcRec.remainingCollarWH -= rem;
+                } else {
+                    let deductBody = Math.min(rem, srcRec.remainingBodyWH);
+                    srcRec.remainingBodyWH -= deductBody;
+                    rem -= deductBody;
+                    if (rem > 0) srcRec.remainingRibWH -= rem;
+                }
+            } else {
+                srcRec.remainingGeneralWH -= targetWeightToDeduct;
+            }
+            
+            srcRec.transferLogs.push({ cutter: `MERGED INTO GODOWN LOT ${newLotNo}`, part: srcRec.isPolo || srcRec.isGrs ? 'BODY' : 'GENERAL', weight: targetWeightToDeduct, time: timestamp, epoch: epochBase + i });
+            recalculateRecord(srcRec); records[recIndex] = srcRec;
+        }
+
+        let uniqueColorsSet = [...new Set(fabricColorsList)];
+        let finalColor = uniqueColorsSet.length === 1 ? uniqueColorsSet[0] : `${fabricColorsList.length} COLORS ASSORTED`;
+
+        const mergedRecord = {
+            id: Date.now(), date: new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' }),
+            fabricName: fabricQualitiesFound[0] || "MICRO MODAL", fabricColor: finalColor, isPolo: false, isGrs: false, lotNumber: newLotNo, batchNumber: "GODOWN-MIX", ribLotNumber: "N/A", ribBatchNumber: "GODOWN-MIX", gsm: document.getElementById('godownLayerNewGsm').value.trim() || "N/A",
+            rollWeight: totalMergedWeight, bodyWeight: totalMergedWeight, collarWeight: 0, ribWeight: 0, remainingBodyWH: 0, remainingCollarWH: 0, remainingRibWH: 0, remainingGeneralWH: totalMergedWeight, totalCutWeight: 0, cuttingLogs: [],
+            transferLogs: [], returnLogs: [], outsideMaterialLogs: [{ cutter: "GODOWN ADMIN", part: "GENERAL", weight: totalMergedWeight, sourceLot: historyTrackingNote.replace(/,\s*$/, ""), time: timestamp, epoch: epochBase + i }]
+        };
+
+        records.unshift(mergedRecord); localStorage.setItem('fabricRecords', JSON.stringify(records));
+        godownLayerQueue = []; document.getElementById('godownLayerNewLotNumber').value = ''; document.getElementById('godownLayerNewGsm').value = ''; document.getElementById('godownLayerSelectedItemsContainer').innerHTML = 'No lots queued up yet.';
+        loadRecords(); alert(`Successfully merged into Godown Lot: ${newLotNo}`);
+    }
+
+    function executeCombinedAction(id, actionType, extraLabel) {
+        const cutter = document.getElementById(`cutter_select_transfer_${id}`).value;
+        if (!cutter) { alert("Please select a Cutter Master!"); return; }
+        let bVal = parseFloat(document.getElementById(`input_transfer_body_${id}`).value) || 0;
+        let eVal = parseFloat(document.getElementById(`input_transfer_extra_${id}`).value) || 0;
+        if (bVal === 0 && eVal === 0) { alert("Please enter weight value!"); return; }
+
+        let records = JSON.parse(localStorage.getItem('fabricRecords')) || [];
+        const idx = records.findIndex(r => r.id === id);
+        if (idx === -1) return;
+        const rec = records[idx];
+        
+        recalculateRecord(rec);
+        const timestamp = new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+
+        if (actionType === 'TRANSFER') {
+            if (parseFloat(bVal.toFixed(3)) > parseFloat(rec.remainingBodyWH.toFixed(3)) || eVal > (extraLabel === 'COLLAR' ? rec.remainingCollarWH : rec.remainingRibWH) || rec.remainingBodyWH <= 0) {
+                alert("❌ Issue Denied! Insufficient stock left in Godown for this lot."); return;
+            }
+            if (bVal > 0) rec.transferLogs.push({ cutter: cutter, part: 'BODY', weight: bVal, time: timestamp, epoch: Date.now() });
+            if (eVal > 0) rec.transferLogs.push({ cutter: cutter, part: extraLabel, weight: eVal, time: timestamp, epoch: Date.now() + 1 });
+        }
+        localStorage.setItem('fabricRecords', JSON.stringify(records)); loadRecords();
+    }
+
+    function executeGeneralAction(id, actionType) {
+        const cutter = document.getElementById(`cutter_select_transfer_${id}`).value;
+        if (!cutter) { alert("Please select a Cutter Master!"); return; }
+        const inputEl = document.getElementById(`input_transfer_gen_${id}`);
+        const val = parseFloat(inputEl ? inputEl.value : "0");
+        if (isNaN(val) || val <= 0) { alert("Please enter a valid weight!"); return; }
+
+        let records = JSON.parse(localStorage.getItem('fabricRecords')) || [];
+        const idx = records.findIndex(r => r.id === id);
+        if (idx === -1) return;
+        const rec = records[idx];
+        
+        recalculateRecord(rec);
+        const timestamp = new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+
+        if (actionType === 'TRANSFER') {
+            if (parseFloat(val.toFixed(3)) > parseFloat(rec.remainingGeneralWH.toFixed(3)) || rec.remainingGeneralWH <= 0) { 
+                alert("❌ Issue Denied! Insufficient stock left in Godown for this lot."); return; 
+            }
+            rec.transferLogs.push({ cutter: cutter, part: 'GENERAL', weight: val, time: timestamp, epoch: Date.now() });
+        }
+        localStorage.setItem('fabricRecords', JSON.stringify(records)); loadRecords();
+    }
+
+    function getCutterStocks(record) {
+        const cuttersList = JSON.parse(localStorage.getItem('cutterList')) || ["A HOSIERY", "B HOSIERY", "C HOSIERY"];
+        let cutters = {};
+        cuttersList.forEach(c => {
+            cutters[c] = { body: 0, collar: 0, rib: 0, general: 0, issuedBody: 0, issuedCollar: 0, issuedRib: 0, issuedGeneral: 0, cutBody: 0, cutCollar: 0, cutRib: 0, cutGeneral: 0, addedOutsideBody: 0, addedOutsideExtra: 0, addedOutsideGeneral: 0, hasActivity: false };
+        });
+
+        let timelineEvents = [];
+        if (record.transferLogs) {
+            record.transferLogs.forEach((log, idx) => {
+                timelineEvents.push({ type: 'TRANSFER', cutter: log.cutter, part: log.part, weight: log.weight, time: log.epoch || Date.parse(log.time + " 2026") || 0, cycle: idx });
+            });
+        }
+        if (record.outsideMaterialLogs) {
+            record.outsideMaterialLogs.forEach((log, idx) => {
+                if (record.batchNumber === "LAY-MIX" && log.sourceLot && log.sourceLot.includes("Merged Layer Layout")) return;
+                timelineEvents.push({ type: 'BORROW', cutter: log.cutter, part: log.part, weight: log.weight, time: log.epoch || Date.parse(log.time + " 2026") || 0, cycle: idx });
+            });
+        }
+        if (record.cuttingLogs) {
+            record.cuttingLogs.forEach((log, idx) => {
+                timelineEvents.push({ type: 'CUT', cutter: log.cutter, bodyWeight: log.bodyWeight || 0, collarWeight: log.collarWeight || 0, ribWeight: log.ribWeight || 0, weight: log.weight || 0, time: log.epoch || log.logId || Date.parse(log.time + " 2026") || 0, cycle: idx });
+            });
+        }
+        if (record.returnLogs) {
+            record.returnLogs.forEach((log, idx) => {
+                timelineEvents.push({ type: 'RETURN', cutter: log.cutter, part: log.part, weight: log.weight, time: log.epoch || Date.parse(log.time + " 2026") || 0, cycle: idx });
+            });
+        }
+
+        timelineEvents.sort((a, b) => {
+            if (a.time !== b.time) return a.time - b.time;
+            if (a.cycle !== b.cycle) return a.cycle - b.cycle;
+            const typeWeight = { 'TRANSFER': 1, 'BORROW': 2, 'CUT': 3, 'RETURN': 4 };
+            return typeWeight[a.type] - typeWeight[b.type];
+        });
+
+        timelineEvents.forEach(log => {
+            if (cutters[log.cutter]) {
+                cutters[log.cutter].hasActivity = true;
+                if (log.type === 'TRANSFER') {
+                    if (log.part === 'BODY') { cutters[log.cutter].body += log.weight; }
+                    else if (log.part === 'COLLAR') { cutters[log.cutter].collar += log.weight; }
+                    else if (log.part === 'RIB') { cutters[log.cutter].rib += log.weight; }
+                    else { cutters[log.cutter].general += log.weight; }
+                }
+                else if (log.type === 'BORROW') {
+                    if (log.part === 'BODY') { cutters[log.cutter].body += log.weight; }
+                    else if (log.part === 'COLLAR' || log.part === 'RIB') { 
+                        if (record.isPolo) cutters[log.cutter].collar += log.weight; else cutters[log.cutter].rib += log.weight; 
+                    }
+                    else { cutters[log.cutter].general += log.weight; }
+                }
+                else if (log.type === 'CUT') {
+                    if (record.isPolo || record.isGrs) {
+                        cutters[log.cutter].body = Math.max(0, cutters[log.cutter].body - log.bodyWeight);
+                        cutters[log.cutter].collar = Math.max(0, cutters[log.cutter].collar - log.collarWeight);
+                        cutters[log.cutter].rib = Math.max(0, cutters[log.cutter].rib - log.ribWeight);
+                    } else {
+                        cutters[log.cutter].general = Math.max(0, cutters[log.cutter].general - log.weight);
+                    }
+                }
+                else if (log.type === 'RETURN') {
+                    if (log.part === 'BODY') cutters[log.cutter].body = Math.max(0, cutters[log.cutter].body - log.weight);
+                    else if (log.part === 'COLLAR' || log.part === 'RIB') {
+                        if (record.isPolo) cutters[log.cutter].collar = Math.max(0, cutters[log.cutter].collar - log.weight);
+                        else cutters[log.cutter].rib = Math.max(0, cutters[log.cutter].rib - log.weight);
+                    }
+                    else cutters[log.cutter].general = Math.max(0, cutters[log.cutter].general - log.weight);
+                }
+            }
+        });
+        return cutters;
+    }
+
+    function recalculateRecord(record) {
+        let totalCut = 0, transBody = 0, transCollar = 0, transRib = 0, transGen = 0;
+        let retBody = 0, retCollar = 0, retRib = 0, retGen = 0;
+        let cutBody = 0, cutCollar = 0, cutRib = 0, cutGen = 0;
+        let outBody = 0, outCollar = 0, outRib = 0, outGen = 0;
+        if(record.cuttingLogs) { 
+            record.cuttingLogs.forEach(log => { 
+                totalCut += log.weight; 
+                if (record.isPolo || record.isGrs) {
+                    cutBody += log.bodyWeight || 0;
+                    if (record.isPolo) cutCollar += log.collarWeight || 0;
+                    else cutRib += log.ribWeight || 0;
+                } else {
+                    cutGen += log.weight;
+                }
+            }); 
+        }
+        record.totalCutWeight = totalCut;
+        if(record.transferLogs) {
+            record.transferLogs.forEach(log => {
+                if (log.part === 'BODY') transBody += log.weight;
+                else if (log.part === 'COLLAR') transCollar += log.weight;
+                else if (log.part === 'RIB') transRib += log.weight;
+                else transGen += log.weight;
+            });
+        }
+        if (record.returnLogs) {
+            record.returnLogs.forEach(log => {
+                if (log.part === 'BODY') retBody += log.weight;
+                else if (log.part === 'COLLAR') retCollar += log.weight;
+                else if (log.part === 'RIB') retRib += log.weight;
+                else retGen += log.weight;
+            });
+        }
+        if (record.outsideMaterialLogs) {
+            record.outsideMaterialLogs.forEach(log => {
+                if (log.sourceLot && log.sourceLot.includes("Merged")) return;
+                if (log.part === 'BODY') outBody += log.weight;
+                else if (log.part === 'COLLAR') outCollar += log.weight;
+                else if (log.part === 'RIB') outRib += log.weight;
+                else outGen += log.weight;
+            });
+        }
+        if (record.isPolo) {
+            let excessBody = Math.max(0, cutBody - (transBody + outBody));
+            let excessCollar = Math.max(0, cutCollar - (transCollar + outCollar));
+            record.remainingBodyWH = record.bodyWeight - transBody + retBody - excessBody;
+            record.remainingCollarWH = record.collarWeight - transCollar + retCollar - excessCollar;
+        } else if (record.isGrs) {
+            let excessBody = Math.max(0, cutBody - (transBody + outBody));
+            let excessRib = Math.max(0, cutRib - (transRib + outRib));
+            record.remainingBodyWH = record.bodyWeight - transBody + retBody - excessBody;
+            record.remainingRibWH = record.ribWeight - transRib + retRib - excessRib;
+        } else {
+            let excessGen = Math.max(0, cutGen - (transGen + outGen));
+            record.remainingGeneralWH = record.rollWeight - transGen + retGen - excessGen;
+        }
+    }
+
+    function filterLots() { const query = document.getElementById('searchInput').value.toLowerCase().trim(); const cards = document.querySelectorAll('#warehouse_page .record-card'); cards.forEach(card => { if (card.innerText.toLowerCase().includes(query)) card.style.display = "block"; else card.style.display = "none"; }); }
+    
+    function updateGSM(id) { const val = prompt("Enter New GSM Value:"); if (val === null) return; let records = JSON.parse(localStorage.getItem('fabricRecords')) || []; const idx = records.findIndex(r => r.id === id); if (idx !== -1) { records[idx].gsm = val.trim() === "" ? "N/A" : val.trim(); localStorage.setItem('fabricRecords', JSON.stringify(records)); loadRecords(); } }
+    function editLot(id) { let records = JSON.parse(localStorage.getItem('fabricRecords')) || []; const idx = records.findIndex(r => r.id === id); if (idx === -1) return; const rec = records[idx]; const newLot = prompt("Modify Lot Number:", rec.lotNumber); if (newLot === null) return; const newBatch = prompt("Modify Batch Number:", rec.batchNumber); if (newBatch === null) return; rec.lotNumber = newLot.trim() === "" ? "N/A" : newLot.trim().toUpperCase(); rec.batchNumber = newBatch.trim() === "" ? "N/A" : newBatch.trim().toUpperCase(); localStorage.setItem('fabricRecords', JSON.stringify(records)); loadRecords(); }
+    
+    function checkLifo(record, targetEpoch) {
+        let maxEpoch = 0;
+        if (record.transferLogs) record.transferLogs.forEach(l => { if((l.epoch || 0) > maxEpoch) maxEpoch = l.epoch; });
+        if (record.cuttingLogs) record.cuttingLogs.forEach(l => { if((l.epoch || 0) > maxEpoch) maxEpoch = l.epoch; });
+        if (record.returnLogs) record.returnLogs.forEach(l => { if((l.epoch || 0) > maxEpoch) maxEpoch = l.epoch; });
+        if (record.outsideMaterialLogs) record.outsideMaterialLogs.forEach(l => { if((l.epoch || 0) > maxEpoch) maxEpoch = l.epoch; });
+        
+        if (targetEpoch < maxEpoch) {
+            alert("❌ ডিলিট করা সম্ভব নয়! নিয়ম অনুযায়ী আপনাকে প্রথমে এর পরের লেটেস্ট অ্যাক্টিভিটিটি ডিলিট করতে হবে (LIFO Rule)।");
+            return false;
+        }
+        return true;
+    }
+
+    function deleteRecord(id) { 
+        let records = JSON.parse(localStorage.getItem('fabricRecords')) || []; 
+        const record = records.find(r => r.id === id);
+        if (!record) return;
+        
+        let maxEpoch = 0;
+        if (record.transferLogs) record.transferLogs.forEach(l => { if((l.epoch || 0) > maxEpoch) maxEpoch = l.epoch; });
+        if (record.cuttingLogs) record.cuttingLogs.forEach(l => { if((l.epoch || 0) > maxEpoch) maxEpoch = l.epoch; });
+        if (record.returnLogs) record.returnLogs.forEach(l => { if((l.epoch || 0) > maxEpoch) maxEpoch = l.epoch; });
+        if (record.outsideMaterialLogs) record.outsideMaterialLogs.forEach(l => { if((l.epoch || 0) > maxEpoch) maxEpoch = l.epoch; });
+        
+        if (maxEpoch > 0) {
+            alert("❌ ডিলিট করা সম্ভব নয়! এই লটে অ্যাক্টিভিটি লগ রয়েছে। প্রথমে লেটেস্ট অ্যাক্টিভিটিগুলো এক এক করে ডিলিট করুন।");
+            return;
+        }
+
+        if (confirm("Are you sure you want to completely delete this lot record?")) { 
+            let records = JSON.parse(localStorage.getItem('fabricRecords')) || []; 
+            const recordToDelete = records.find(r => r.id === id); 
+            if (recordToDelete) { 
+                const targetLotNo = recordToDelete.lotNumber; 
+                records.forEach(r => { 
+                    if (r.id !== id && r.transferLogs) { 
+                        const originalLength = r.transferLogs.length; 
+                        r.transferLogs = r.transferLogs.filter(log => log.cutter !== `MERGED INTO GODOWN LOT ${targetLotNo}`); 
+                        if (r.transferLogs.length !== originalLength) { recalculateRecord(r); } 
+                    } 
+                }); 
+            } 
+            records = records.filter(record => record.id !== id); 
+            localStorage.setItem('fabricRecords', JSON.stringify(records)); 
+            loadRecords(); 
+        } 
+    }
+    
+    function editCuttingLog(lotId, logId) { 
+        let records = JSON.parse(localStorage.getItem('fabricRecords')) || []; 
+        const lotIndex = records.findIndex(r => r.id === lotId); 
+        if (lotIndex === -1) return; 
+        const currentRecord = records[lotIndex]; 
+        const logIndex = currentRecord.cuttingLogs.findIndex(l => l.logId === logId); 
+        if (logIndex === -1) return; 
+        const currentLog = currentRecord.cuttingLogs[logIndex]; 
+        if (currentRecord.isPolo || currentRecord.isGrs) { 
+            const newB = parseFloat(prompt("Edit Body Weight:", currentLog.bodyWeight)) || 0; 
+            const newE = parseFloat(prompt("Edit Extra Weight:", currentRecord.isPolo ? currentLog.collarWeight : currentLog.ribWeight)) || 0; 
+            currentLog.bodyWeight = newB; 
+            if (currentRecord.isPolo) currentLog.collarWeight = newE; else currentLog.ribWeight = newE; 
+            currentLog.weight = newB + newE; 
+        } else { 
+            const newW = parseFloat(prompt("Edit Cutting Weight:", currentLog.weight)); 
+            if (!isNaN(newW)) { currentLog.weight = newW; } 
+        } 
+        const newCh = prompt("Edit Cutting Challan No:", currentLog.challanNo || "");
+        if (newCh !== null) { currentLog.challanNo = newCh.trim() === "" ? "N/A" : newCh.trim().toUpperCase(); }
+        localStorage.setItem('fabricRecords', JSON.stringify(records)); 
+        loadRecords(); 
+    }
+    
+    function deleteCuttingLog(lotId, logId) {
+        let records = JSON.parse(localStorage.getItem('fabricRecords')) || [];
+        const lotIndex = records.findIndex(r => r.id === lotId);
+        if (lotIndex === -1) return;
+        const logItem = records[lotIndex].cuttingLogs.find(l => l.logId === logId);
+        if (logItem && !checkLifo(records[lotIndex], logItem.epoch || logItem.logId || 0)) return;
+
+        if (confirm("Are you sure you want to delete this cutting entry?")) {
+            records[lotIndex].cuttingLogs = records[lotIndex].cuttingLogs.filter(l => l.logId !== logId);
+            recalculateRecord(records[lotIndex]);
+            localStorage.setItem('fabricRecords', JSON.stringify(records));
+            loadRecords();
+        }
+    }
+    
+    function editReturnLog(lotId, epochId) {
+        let records = JSON.parse(localStorage.getItem('fabricRecords')) || [];
+        const lotIndex = records.findIndex(r => r.id === lotId);
+        if (lotIndex === -1) return;
+        const currentRecord = records[lotIndex];
+        const logIndex = currentRecord.returnLogs.findIndex(l => l.epoch === epochId);
+        if (logIndex === -1) return;
+        const currentLog = currentRecord.returnLogs[logIndex];
+        
+        const newW = parseFloat(prompt("Edit Return Weight:", currentLog.weight));
+        if (!isNaN(newW)) { currentLog.weight = newW; }
+        const newCh = prompt("Edit Return Challan No:", currentLog.challanNo || "");
+        if (newCh !== null) { currentLog.challanNo = newCh.trim() === "" ? "N/A" : newCh.trim().toUpperCase(); }
+        
+        recalculateRecord(currentRecord);
+        localStorage.setItem('fabricRecords', JSON.stringify(records));
+        loadRecords();
+    }
+    
+    function deleteReturnLog(lotId, epochId) {
+        let records = JSON.parse(localStorage.getItem('fabricRecords')) || [];
+        const lotIndex = records.findIndex(r => r.id === lotId);
+        if (lotIndex === -1) return;
+        const logItem = records[lotIndex].returnLogs.find(l => l.epoch === epochId);
+        if (logItem && !checkLifo(records[lotIndex], logItem.epoch || 0)) return;
+
+        if (confirm("Are you sure you want to delete this return entry?")) {
+            records[lotIndex].returnLogs = records[lotIndex].returnLogs.filter(l => l.epoch !== epochId);
+            recalculateRecord(records[lotIndex]);
+            localStorage.setItem('fabricRecords', JSON.stringify(records));
+            loadRecords();
+        }
+    }
+
+    function deleteTransferLog(lotId, epoch) {
+        let records = JSON.parse(localStorage.getItem('fabricRecords')) || [];
+        const lotIndex = records.findIndex(r => r.id === lotId);
+        if (lotIndex === -1) return;
+        const record = records[lotIndex];
+        if (!checkLifo(record, epoch)) return;
+        
+        if (confirm("Are you sure you want to delete this issue/transfer entry?")) {
+            const logToDelete = record.transferLogs.find(l => l.epoch === epoch);
+            if (logToDelete && String(logToDelete.cutter).startsWith("MERGED INTO GODOWN LOT ")) {
+                const targetLotNo = String(logToDelete.cutter).replace("MERGED INTO GODOWN LOT ", "").trim();
+                const mergedLot = records.find(r => r.lotNumber === targetLotNo && r.batchNumber === "GODOWN-MIX");
+                if (mergedLot) {
+                    let mergedMax = 0;
+                    if (mergedLot.transferLogs) mergedLot.transferLogs.forEach(l => { if(l.epoch > mergedMax) mergedMax = l.epoch; });
+                    if (mergedLot.cuttingLogs) mergedLot.cuttingLogs.forEach(l => { if(l.epoch > mergedMax) mergedMax = l.epoch; });
+                    if (mergedLot.returnLogs) mergedLot.returnLogs.forEach(l => { if(l.epoch > mergedMax) mergedMax = l.epoch; });
+                    const initialLog = mergedLot.outsideMaterialLogs ? mergedLot.outsideMaterialLogs[0] : null;
+                    if (mergedMax > (initialLog ? (initialLog.epoch || 0) : 0)) {
+                        alert("❌ ডিলিট করা সম্ভব নয়! এই মার্জ করা লটটি (" + targetLotNo + ") ইতিমধ্যে ব্যবহার করা হয়েছে। প্রথমে ওই লটের অ্যাক্টিভিটি ডিলিট করুন।");
+                        return;
+                    }
+                    records = records.filter(r => r.id !== mergedLot.id);
+                }
+                records.forEach(r => {
+                    if (r.transferLogs) {
+                        r.transferLogs = r.transferLogs.filter(l => l.cutter !== `MERGED INTO GODOWN LOT ${targetLotNo}`);
+                        recalculateRecord(r);
+                    }
+                });
+            } else if (logToDelete && String(logToDelete.cutter).startsWith("LENT TO LAYER CUT ")) {
+                const targetLotNo = String(logToDelete.cutter).replace("LENT TO LAYER CUT ", "").trim();
+                const mergedLot = records.find(r => r.lotNumber === targetLotNo && r.batchNumber === "LAY-MIX");
+                if (mergedLot) {
+                    let mergedMax = 0;
+                    if (mergedLot.transferLogs) mergedLot.transferLogs.forEach(l => { if(l.epoch > mergedMax) mergedMax = l.epoch; });
+                    if (mergedLot.cuttingLogs) mergedLot.cuttingLogs.forEach(l => { if(l.epoch > mergedMax) mergedMax = l.epoch; });
+                    if (mergedLot.returnLogs) mergedLot.returnLogs.forEach(l => { if(l.epoch > mergedMax) mergedMax = l.epoch; });
+                    const initialLog = mergedLot.outsideMaterialLogs ? mergedLot.outsideMaterialLogs[0] : null;
+                    if (mergedMax > (initialLog ? (initialLog.epoch || 0) : 0)) {
+                        alert("❌ ডিলিট করা সম্ভব নয়! এই মার্জ করা লেয়ার লটটি (" + targetLotNo + ") ইতিমধ্যে ব্যবহার করা হয়েছে।");
+                        return;
+                    }
+                    records = records.filter(r => r.id !== mergedLot.id);
+                }
+                records.forEach(r => {
+                    if (r.transferLogs) {
+                        r.transferLogs = r.transferLogs.filter(l => l.cutter !== `LENT TO LAYER CUT ${targetLotNo}`);
+                        recalculateRecord(r);
+                    }
+                });
+            } else if (logToDelete && String(logToDelete.cutter).startsWith("LENT TO LOT ")) {
+                const targetLotNo = String(logToDelete.cutter).replace("LENT TO LOT ", "").trim();
+                const targetLot = records.find(r => r.lotNumber === targetLotNo);
+                if (targetLot) {
+                    let targetMax = 0;
+                    if (targetLot.transferLogs) targetLot.transferLogs.forEach(l => { if(targetMax < l.epoch) targetMax = l.epoch; });
+                    if (targetLot.cuttingLogs) targetLot.cuttingLogs.forEach(l => { if(targetMax < l.epoch) targetMax = l.epoch; });
+                    if (targetLot.returnLogs) targetLot.returnLogs.forEach(l => { if(targetMax < l.epoch) targetMax = l.epoch; });
+                    if (targetLot.outsideMaterialLogs) targetLot.outsideMaterialLogs.forEach(l => { if(targetMax < l.epoch) targetMax = l.epoch; });
+                    
+                    let maxBorrowEpochInTarget = 0;
+                    if (targetLot.outsideMaterialLogs) {
+                        targetLot.outsideMaterialLogs.forEach(l => {
+                            if (l.sourceLot === record.lotNumber && Math.abs(l.epoch - logToDelete.epoch) <= 10) {
+                                if (l.epoch > maxBorrowEpochInTarget) maxBorrowEpochInTarget = l.epoch;
+                            }
+                        });
+                    }
+                    
+                    if (maxBorrowEpochInTarget > 0 && targetMax > maxBorrowEpochInTarget) {
+                        alert("❌ ডিলিট করা সম্ভব নয়! এই ধার দেওয়া লটটি (" + targetLotNo + ") ইতিমধ্যে কাটিং বা অন্য কাজে ব্যবহার করা হয়েছে (LIFO Rule)। প্রথমে ওই লটের লেটেস্ট অ্যাক্টিভিটি ডিলিট করুন।");
+                        return;
+                    }
+                    
+                    record.transferLogs = record.transferLogs.filter(l => !(Math.abs(l.epoch - logToDelete.epoch) <= 10 && (l.targetLot === targetLotNo || String(l.cutter) === String(logToDelete.cutter) || String(l.targetLot) === targetLotNo)));
+                    targetLot.outsideMaterialLogs = targetLot.outsideMaterialLogs.filter(l => !(l.sourceLot === record.lotNumber && Math.abs(l.epoch - logToDelete.epoch) <= 10));
+                    recalculateRecord(targetLot);
+                    recalculateRecord(record);
+                } else {
+                    record.transferLogs = record.transferLogs.filter(l => !(Math.abs(l.epoch - logToDelete.epoch) <= 10 && (l.targetLot === targetLotNo || String(l.cutter) === String(logToDelete.cutter))));
+                    recalculateRecord(record);
+                }
+            } else {
+                record.transferLogs = record.transferLogs.filter(l => l.epoch !== epoch);
+                recalculateRecord(record);
+            }
+            localStorage.setItem('fabricRecords', JSON.stringify(records));
+            loadRecords();
+        }
+    }
+
+    function deleteOutsideLog(lotId, epoch) {
+        let records = JSON.parse(localStorage.getItem('fabricRecords')) || [];
+        const lotIndex = records.findIndex(r => r.id === lotId);
+        if (lotIndex === -1) return;
+        const record = records[lotIndex];
+        if (!checkLifo(record, epoch)) return;
+        
+        if (confirm("Are you sure you want to delete this creation/borrow entry?")) {
+            const logToDelete = record.outsideMaterialLogs.find(l => l.epoch === epoch);
+            if (logToDelete && (record.batchNumber === "GODOWN-MIX" || record.batchNumber === "LAY-MIX")) {
+                const targetLotNo = record.lotNumber;
+                records.forEach(r => {
+                    if (r.transferLogs) {
+                        r.transferLogs = r.transferLogs.filter(l => l.cutter !== `MERGED INTO GODOWN LOT ${targetLotNo}` && l.cutter !== `LENT TO LAYER CUT ${targetLotNo}`);
+                        recalculateRecord(r);
+                    }
+                });
+                records = records.filter(r => r.id !== lotId);
+            } else if (logToDelete) {
+                const sourceLotNo = logToDelete.sourceLot;
+                const sourceLot = records.find(r => r.lotNumber === sourceLotNo);
+                if (sourceLot) {
+                    sourceLot.transferLogs = sourceLot.transferLogs.filter(l => !(Math.abs(l.epoch - logToDelete.epoch) <= 10 && (l.targetLot === record.lotNumber || String(l.cutter) === `LENT TO LOT ${record.lotNumber}`)));
+                    recalculateRecord(sourceLot);
+                }
+                record.outsideMaterialLogs = record.outsideMaterialLogs.filter(l => !(l.sourceLot === sourceLotNo && Math.abs(l.epoch - logToDelete.epoch) <= 10));
+                recalculateRecord(record);
+            }
+            localStorage.setItem('fabricRecords', JSON.stringify(records));
+            loadRecords();
+        }
+    }
+    
+    function exportData() { const records = localStorage.getItem('fabricRecords') || "[]"; const fabricList = localStorage.getItem('fabricList') || "[]"; const blob = new Blob([JSON.stringify({ records: JSON.parse(records), fabricList: JSON.parse(fabricList) })], { type: 'application/json' }); const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = `cutting_inventory_backup_${new Date().toISOString().slice(0,10)}.json`; document.body.appendChild(a); a.click(); document.body.removeChild(a); }
+    function triggerImport() { document.getElementById('fileInput').click(); }
+    function importData(event) { const file = event.target.files[0]; if (!file) return; const reader = new FileReader(); reader.onload = function(e) { try { const importedData = JSON.parse(e.target.result); if (importedData.records && importedData.fabricList) { localStorage.setItem('fabricRecords', JSON.stringify(importedData.records)); localStorage.setItem('fabricList', JSON.stringify(importedData.fabricList)); loadFabricList(); loadRecords(); alert("Data imported successfully!"); } } catch (err) { alert("Invalid backup file!"); } }; reader.readAsText(file); event.target.value = ''; }
+
+    function loadRecords() {
+        const records = JSON.parse(localStorage.getItem('fabricRecords')) || [];
+        const warehouseList = document.getElementById('warehouseRecordsList');
+        if(!warehouseList) return;
+        warehouseList.innerHTML = '';
+        populateGodownSourceLotDropdown(records);
+
+        let totalRoll = 0, totalCutting = 0;
+        const cutterOptionsHTML = transformCutterOptionsHTML();
+        const cuttersList = JSON.parse(localStorage.getItem('cutterList')) || ["A HOSIERY", "B HOSIERY", "C HOSIERY"];
+
+        records.forEach(record => {
+            recalculateRecord(record);
+            totalRoll += record.rollWeight; totalCutting += record.totalCutWeight;
+            const displayLot = record.lotNumber || "N/A";
+            const displayBatch = record.batchNumber || "N/A";
+            const displayGsm = record.gsm || "N/A";
+            const displayColor = record.fabricColor || "NO COLOR";
+
+            let uStr = record.isTextile ? "Mtr" : "Kg";
+            let uAbbr = record.isTextile ? "M" : "k";
+
+            let timelineEntries = [];
+
+            if (record.transferLogs) {
+                record.transferLogs.forEach(l => {
+                    let parsedDate = l.epoch || Date.parse(l.time + " 2026") || 0;
+                    let html = "";
+                    if (String(l.cutter).includes("LENT TO LOT") || String(l.cutter).includes("LENT TO LAYER CUT")) {
+                        html = `<div style="padding: 3px 6px; font-size:11.5px; border-bottom:1px dashed #e2e8f0; color:#c0392b; font-weight: bold; background: #fff5f5; display:flex; justify-content:space-between; align-items:center;">
+                                    <span>📉 Lent ${(parseFloat(Math.abs(l.weight) || 0)).toFixed(3)}${uAbbr} to ${l.cutter} (${l.time})</span>
+                                    <button type="button" class="delete-btn-mini" style="padding: 2px 6px !important; font-size: 10px !important; margin: 0; width: auto;" onclick="deleteTransferLog(${record.id}, ${l.epoch || 0})">Delete</button>
+                                </div>`;
+                    } else {
+                        html = `<div style="padding: 3px 6px; font-size:12px; border-bottom:1px dashed #e2e8f0; color:#334155; display:flex; justify-content:space-between; align-items:center;">
+                                    <span>👤 <b>${l.cutter}</b> (${l.time}): <span style="color:#2980b9;font-weight:bold;">Issued ➡️</span> ${(parseFloat(l.weight || 0)).toFixed(3)} ${uStr} [${l.part}]</span>
+                                    <button type="button" class="delete-btn-mini" style="padding: 2px 6px !important; font-size: 10px !important; margin: 0; width: auto;" onclick="deleteTransferLog(${record.id}, ${l.epoch || 0})">Delete</button>
+                                </div>`;
+                    }
+                    timelineEntries.push({ time: parsedDate, html: html });
+                });
+            }
+
+            if (record.outsideMaterialLogs) {
+                record.outsideMaterialLogs.forEach(l => {
+                    let parsedDate = l.epoch || Date.parse(l.time + " 2026") || 0;
+                    let displaySourceText = String(l.sourceLot).includes("Merged Layer") ? l.sourceLot : `LOT: ${l.sourceLot}`;
+                    let html = `<div style="padding: 3px 6px; font-size:12px; border-bottom:1px dashed #e2e8f0; color:#334155; display:flex; justify-content:space-between; align-items:center;">
+                                    <span>👤 <b>${l.cutter}</b> (${l.time}): <span style="color:#9b59b6;font-weight:bold;">Borrowed ➕</span> ${(parseFloat(l.weight || 0)).toFixed(3)} ${uStr} [${l.part}] from ${displaySourceText}</span>
+                                    <button type="button" class="delete-btn-mini" style="padding: 2px 6px !important; font-size: 10px !important; margin: 0; width: auto;" onclick="deleteOutsideLog(${record.id}, ${l.epoch || 0})">Delete</button>
+                                </div>`;
+                    timelineEntries.push({ time: parsedDate, html: html });
+                });
+            }
+
+            if (record.cuttingLogs) {
+                record.cuttingLogs.forEach(l => {
+                    let parsedDate = l.epoch || Date.parse(l.time + " 2026") || 0;
+                    let txt = record.isPolo ? `Body: ${(parseFloat(l.bodyWeight || 0)).toFixed(3)}${uAbbr}, Collar: ${(parseFloat(l.collarWeight || 0)).toFixed(3)}${uAbbr}` : (record.isGrs ? `Body: ${(parseFloat(l.bodyWeight || 0)).toFixed(3)}${uAbbr}, Rib: ${(parseFloat(l.ribWeight || 0)).toFixed(3)}${uAbbr}` : `${(parseFloat(l.weight || 0)).toFixed(3)} ${uStr}`);
+                    
+                    let chText = l.challanNo && l.challanNo !== "N/A" ? ` [Ch: ${l.challanNo}]` : '';
+                    
+                    let html = `<div style="padding: 3px 6px; font-size:12px; border-bottom:1px dashed #e2e8f0; color:#334155; display:flex; justify-content:space-between; align-items:center;">
+                                    <span>👤 <b>${l.cutter}</b> (${l.time}): <span style="color:#e67e22;font-weight:bold;">Cut ✂️</span> ${txt}${chText}</span>
+                                    <div style="display:flex; gap:3px;">
+                                        <button type="button" class="edit-btn-mini" style="padding: 2px 6px !important; font-size: 10px !important;" onclick="editCuttingLog(${record.id}, ${l.logId})">Edit</button>
+                                        <button type="button" class="delete-btn-mini" style="padding: 2px 6px !important; font-size: 10px !important;" onclick="deleteCuttingLog(${record.id}, ${l.logId})">Delete</button>
+                                    </div>
+                                </div>`;
+                    timelineEntries.push({ time: parsedDate, html: html });
+                });
+            }
+
+            if (record.returnLogs) {
+                record.returnLogs.forEach(l => {
+                    let parsedDate = l.epoch || Date.parse(l.time + " 2026") || 0;
+                    let chText = l.challanNo && l.challanNo !== "N/A" ? ` [Ch: ${l.challanNo}]` : '';
+                    let html = `<div style="padding: 3px 6px; font-size:12px; border-bottom:1px dashed #e2e8f0; color:#2ecc71;font-weight:bold; display:flex; justify-content:space-between; align-items:center;">
+                                    <span>👤 <b>${l.cutter}</b> (${l.time}): <span style="color:#2ecc71;font-weight:bold;">Returned ⬅️</span> ${(parseFloat(l.weight || 0)).toFixed(3)} ${uStr} [${l.part}]${chText}</span>
+                                    <div style="display:flex; gap:3px;">
+                                        <button type="button" class="edit-btn-mini" style="padding: 2px 6px !important; font-size: 10px !important;" onclick="editReturnLog(${record.id}, ${l.epoch || 0})">Edit</button>
+                                        <button type="button" class="delete-btn-mini" style="padding: 2px 6px !important; font-size: 10px !important;" onclick="deleteReturnLog(${record.id}, ${l.epoch || 0})">Delete</button>
+                                    </div>
+                                </div>`;
+                    timelineEntries.push({ time: parsedDate, html: html });
+                });
+            }
+
+            timelineEntries.sort((a, b) => a.time - b.time);
+            let cutterSummaryWH_HTML = timelineEntries.map(e => e.html).join('');
+
+            if (cutterSummaryWH_HTML === '') { cutterSummaryWH_HTML = `<div style="padding:4px 8px; font-size:11px; color:#94a3b8; font-style:italic;">No cutting assignments issued yet.</div>`; }
+
+            let whStockHTML = ''; let whActionHTML = '';
+            if (record.isPolo || record.isGrs) {
+                const labelExtraBn = record.isPolo ? 'Collar' : 'Rib';
+                const labelExtra = record.isPolo ? 'COLLAR' : 'RIB';
+                const bodyBalVal = parseFloat(record.remainingBodyWH || 0);
+                const extraBalVal = record.isPolo ? parseFloat(record.remainingCollarWH || 0) : parseFloat(record.remainingRibWH || 0);
+                const bodyColor = bodyBalVal < 0 ? '#e74c3c' : '#2ecc71';
+                const extraColor = extraBalVal < 0 ? '#e74c3c' : '#2ecc71';
+                whStockHTML = `📋 Received Wt: <span style="color:#3498db;font-weight:bold;">${record.rollWeight.toFixed(3)}</span> ${uStr} | Body Bal: <span style="color:${bodyColor};font-weight:bold;">${bodyBalVal.toFixed(3)}</span>${uAbbr} | ${labelExtraBn} Bal: <span style="color:${extraColor};font-weight:bold;">${extraBalVal.toFixed(3)}</span>${uAbbr}`;
+                whActionHTML = `
+                    <div class="card-action-panel-mini">
+                        <div class="panel-title-mini">📦 Issue Material to Cutter</div>
+                        <div class="action-row-split-mini">
+                            <select id="cutter_select_transfer_${record.id}">${cutterOptionsHTML}</select>
+                            <input type="number" id="input_transfer_body_${record.id}" step="0.01" inputmode="decimal" placeholder="Body">
+                            <input type="number" id="input_transfer_extra_${record.id}" step="0.01" inputmode="decimal" placeholder="${labelExtraBn}">
+                            <button type="button" class="transfer-btn-mini" onclick="executeCombinedAction(${record.id}, 'TRANSFER', '${labelExtra}')">Issue ➡️</button>
+                        </div>
+                    </div>`;
+            } else {
+                const genBalVal = parseFloat(record.remainingGeneralWH || 0);
+                const genColor = genBalVal < 0 ? '#e74c3c' : '#2ecc71';
+                whStockHTML = `📋 Received Wt: <span style="color:#3498db;font-weight:bold;">${record.rollWeight.toFixed(3)}</span> ${uStr} | Stock Bal: <span style="color:${genColor};font-weight:bold;">${genBalVal.toFixed(3)}</span> ${uStr}`;
+                whActionHTML = `
+                    <div class="card-action-panel-mini">
+                        <div class="panel-title-mini">📦 Issue Material to Cutter</div>
+                        <div class="action-row-split-mini">
+                            <select id="cutter_select_transfer_${record.id}">${cutterOptionsHTML}</select>
+                            <input type="number" id="input_transfer_gen_${record.id}" step="0.01" inputmode="decimal" placeholder="Qty (${uStr})">
+                            <button type="button" class="transfer-btn-mini" onclick="executeGeneralAction(${record.id}, 'TRANSFER')">Issue ➡️</button>
+                        </div>
+                    </div>`;
+            }
+
+            const whCard = document.createElement('div'); whCard.className = 'record-card';
+            whCard.innerHTML = `
+                <div onclick="let d = this.nextElementSibling; d.style.display = d.style.display === 'none' ? 'block' : 'none'; this.querySelector('.toggle-indicator').innerText = d.style.display === 'none' ? '▼ Open' : '▲ Close';" style="cursor:pointer; position:relative; padding-right:85px;">
+                    <p style="color: #7f8c8d; font-size: 11px;">Date: ${record.date}</p>
+                    <p><strong>Quality:</strong> ${record.fabricName} | <strong>Color:</strong> <span style="color:#3498db;font-weight:bold;">${displayColor}</span> | <strong>GSM:</strong> ${displayGsm}</p>
+                    <p><strong>Lot No:</strong> <span style="color:#e67e22;font-weight:bold;">${displayLot}</span> | <strong>Batch No:</strong> ${displayBatch}</p>
+                    <div class="stock-display-grid" onclick="event.stopPropagation();">${whStockHTML}</div>
+                    <div class="toggle-indicator" style="position:absolute; right:5px; top:50%; transform:translateY(-50%); font-size:11px; font-weight:bold; color:#3498db; background:#e8f4f8; padding:4px 6px; border-radius:4px;">▼ Open</div>
+                </div>
+                <div class="card-expanded-details" style="display:none; border-top:1px dashed #cbd5e1; margin-top:10px; padding-top:5px;">
+                    <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:6px; margin-top:3px; margin-bottom:3px;">
+                        <div style="background:#edf2f7; font-size:11px; font-weight:bold; padding:3px 8px; border-bottom:1px solid #e2e8f0; color:#4a5568;">LIVE SUMMARY</div>
+                        ${cutterSummaryWH_HTML}
+                    </div>
+                    ${whActionHTML}
+                    <div class="card-footer-buttons-mini">
+                        <button type="button" class="gsm-btn-mini" onclick="updateGSM(${record.id})">GSM</button>
+                        <button type="button" class="edit-btn-mini" onclick="editLot(${record.id})">Edit</button>
+                        <button type="button" class="delete-btn-mini" onclick="deleteRecord(${record.id})">Delete</button>
+                    </div>
+                </div>`;
+            warehouseList.appendChild(whCard);
+        });
+
+        document.getElementById('totalRollWeight').innerText = (parseFloat(totalRoll || 0)).toFixed(3);
+        document.getElementById('totalCuttingWeight').innerText = (parseFloat(totalCutting || 0)).toFixed(3);
+        let currentTotalStock = totalRoll - totalCutting;
+        document.getElementById('totalStock').innerText = (parseFloat(currentTotalStock || 0)).toFixed(3);
+    }
+
+    function addStock() {
+        const fabricName = document.getElementById('fabricSelect').value;
+        let fabricColor = document.getElementById('fabricColor').value.trim().toUpperCase();
+        const lotNumber = document.getElementById('lotNumber').value.trim().toUpperCase();
+        let batchNumber = document.getElementById('batchNumber').value.trim().toUpperCase();
+        const gsmValue = document.getElementById('gsmInput').value.trim();
+
+        let isTextile = fabricName.toLowerCase().includes('textile');
+        if (isTextile) { fabricColor = "MULTI COLOR"; batchNumber = "N/A"; }
+
+        const finalColor = fabricColor === "" ? "NO COLOR" : fabricColor;
+        const finalLotNumber = lotNumber === "" ? "N/A" : lotNumber;
+        const finalBatchNumber = batchNumber === "" ? "N/A" : batchNumber;
+        const finalGsm = gsmValue === "" ? "N/A" : gsmValue;
+
+        if (!fabricName) { alert("Please select fabric quality from dropdown."); return; }
+        let isPolo = fabricName.toLowerCase().includes('polo');
+        let isGrs = fabricName.toLowerCase().includes('grs');
+        let rollWeight = 0, bodyWeight = 0, collarWeight = 0, ribLot = "N/A", ribBatch = "N/A", ribWeight = 0;
+
+        if (isPolo) {
+            bodyWeight = parseFloat(document.getElementById('bodyWeight').value);
+            collarWeight = parseFloat(document.getElementById('collarWeight').value);
+            if (isNaN(bodyWeight) || isNaN(collarWeight)) { alert("Please fill correct weights."); return; }
+            rollWeight = bodyWeight + collarWeight;
+        } else if (isGrs) {
+            bodyWeight = parseFloat(document.getElementById('grsBodyWeight').value);
+            ribWeight = parseFloat(document.getElementById('grsRibWeight').value);
+            const rLot = document.getElementById('ribLotNumber').value.trim().toUpperCase();
+            const rBatch = document.getElementById('ribBatchNumber').value.trim().toUpperCase();
+            if (isNaN(bodyWeight) || isNaN(ribWeight)) { alert("Please fill correct weights."); return; }
+            ribLot = rLot === "" ? "N/A" : rLot; ribBatch = rBatch === "" ? "N/A" : rBatch;
+            rollWeight = bodyWeight + ribWeight;
+        } else {
+            rollWeight = parseFloat(document.getElementById('rollWeight').value);
+            if (isNaN(rollWeight)) { alert("Please enter proper fabric quantity."); return; }
+        }
+
+        const date = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+        const record = {
+            id: Date.now(), date: date, fabricName: fabricName, fabricColor: finalColor, isPolo: isPolo, isGrs: isGrs, isTextile: isTextile, lotNumber: finalLotNumber, batchNumber: finalBatchNumber, ribLotNumber: ribLot, ribBatchNumber: finalBatchNumber, gsm: finalGsm, rollWeight: rollWeight,
+            bodyWeight: isPolo || isGrs ? bodyWeight : rollWeight, collarWeight: isPolo ? collarWeight : 0, ribWeight: isGrs ? ribWeight : 0,
+            remainingBodyWH: isPolo || isGrs ? bodyWeight : rollWeight, remainingCollarWH: isPolo ? collarWeight : 0, remainingRibWH: isGrs ? ribWeight : 0, remainingGeneralWH: (!isPolo && !isGrs) ? rollWeight : 0,
+            totalCutWeight: 0, cuttingLogs: [], transferLogs: [], returnLogs: [], outsideMaterialLogs: []
+        };
+
+        let records = JSON.parse(localStorage.getItem('fabricRecords')) || [];
+        records.unshift(record); localStorage.setItem('fabricRecords', JSON.stringify(records));
+        document.getElementById('fabricColor').value = ''; document.getElementById('lotNumber').value = ''; document.getElementById('batchNumber').value = '';
+        document.getElementById('ribLotNumber').value = ''; document.getElementById('gsmInput').value = '';
+        if(document.getElementById('rollWeight')) document.getElementById('rollWeight').value = ''; 
+        if(document.getElementById('bodyWeight')) document.getElementById('bodyWeight').value = ''; 
+        if(document.getElementById('collarWeight')) document.getElementById('collarWeight').value = '';
+        if(document.getElementById('grsBodyWeight')) document.getElementById('grsBodyWeight').value = ''; 
+        if(document.getElementById('grsRibWeight')) document.getElementById('grsRibWeight').value = '';
+        loadRecords();
+    }
+    
+    window.addEventListener('storage', function(e) {
+        if (e.key === 'fabricRecords' || e.key === 'fabricList') {
+            loadFabricList();
+            loadRecords();
+        }
+    });
+</script>
+</body>
+</html>
+    </textarea>
+
+    <textarea id="cutter_source" style="display:none;">
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" style="display:none;" name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Garments Lot & Cutter Inventory Tracker - Cutter Room</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background-color: #f4f7f6; padding: 15px; color: #333; }
+        .container { max-width: 600px; margin: 0 auto; background: #fff; padding: 20px; border-radius: 10px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
+        .container h2 { text-align: center; color: #2c3e50; margin-bottom: 10px; font-size: 22px; border-bottom: 2px solid #3498db; padding-bottom: 10px; }
+        .navigation-tabs { display: flex; margin-bottom: 20px; border-radius: 8px; overflow: hidden; border: 1px solid #3498db; }
+        .tab-btn { flex: 1; padding: 12px; background: #fff; color: #3498db; font-weight: bold; font-size: 14px; cursor: pointer; text-align: center; transition: all 0.3s ease; border: none; border-radius: 0; }
+        .tab-btn.active { background: #3498db; color: #fff; }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; color: #34495e; font-size: 14px; }
+        input, select { width: 100%; padding: 12px; border: 1px solid #bdc3c7; border-radius: 6px; font-size: 16px; outline: none; }
+        input[type="text"] { text-transform: uppercase; }
+        input:focus, select:focus { border-color: #3498db; }
+        .select-container { display: table; width: 100%; }
+        .select-cell { display: table-cell; vertical-align: middle; }
+        button { width: 100%; padding: 12px; border: none; color: white; font-size: 16px; font-weight: bold; border-radius: 6px; cursor: pointer; transition: background 0.2s; }
+        .card-action-panel { background: #f1f5f9; padding: 10px; border-radius: 6px; margin-top: 8px; border: 1px solid #e2e8f0; margin-bottom: 15px; }
+        .panel-title { font-size: 12px; font-weight: bold; color: #475569; margin-bottom: 8px; text-transform: uppercase; border-bottom: 1px solid #cbd5e1; padding-bottom: 3px; }
+        .action-row-split { display: flex; gap: 5px; margin-bottom: 6px; align-items: center; }
+        .action-row-split input, .action-row-split select { flex: 1; padding: 8px; font-size: 13px; border-radius: 4px; border: 1px solid #cbd5e1; height: 35px; }
+        .action-row-split button { width: 35%; padding: 8px 4px; font-size: 11px; border-radius: 4px; font-weight: bold; white-space: nowrap; height: 35px; }
+        .cut-btn { background: #e67e22; color: white; }
+        .add-material-btn { background: #9b59b6; color: white; }
+        .return-btn { background: #2ecc71; color: white; }
+        .mini-edit-btn { background: #7f8c8d; color: white; border: none; padding: 2px 6px; font-size: 10px; border-radius: 3px; cursor: pointer; width: auto; }
+        .history-section { margin-top: 15px; }
+        .history-title { font-size: 18px; color: #2c3e50; margin-bottom: 10px; }
+        .record-card { background: #fdfefe; border: 1px solid #e2e8f0; padding: 15px; border-radius: 6px; margin-bottom: 15px; position: relative; box-shadow: 0 2px 4px rgba(0,0,0,0.02); }
+        .stock-display-grid { background: #f8f9fa; padding: 8px; border-radius: 6px; font-size: 13px; margin-top: 5px; margin-bottom: 5px; border: 1px solid #cbd5e1; }
+        .cutting-history { background: #f8f9fa; border-top: 1px dashed #bdc3c7; padding-top: 8px; margin-top: 8px; font-size: 12px; color: #555; }
+        .search-section { margin-top: 25px; background: #f8f9fa; padding: 12px; border-radius: 6px; border: 1px solid #e2e8f0; }
+        .search-input { border: 2px solid #e67e22; background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="%23e67e22" class="bi bi-search" viewBox="0 0 16 16"><path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z"/></svg>'); background-repeat: no-repeat; background-position: 12px center; padding-left: 38px; text-transform: uppercase; }
+        .layer-build-box { background: #fff6fa; border: 1px solid #f9dbe7; padding: 10px; border-radius: 6px; margin-top: 10px; }
+        .layer-item-tag { display: inline-block; background: #2b6cb0; color: white; padding: 3px 8px; font-size: 11px; border-radius: 4px; margin: 2px; font-weight: bold; }
+        .btn-plus { background-color: #e67e22; font-size: 18px; }
+        .btn-delete-dropdown { background-color: #e74c3c; font-size: 16px; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>Lot & Fabric Cutting Tracker - Cutter Room</h2>
+
+    <div id="cutter_page" class="page-content active">
+        <div class="form-group">
+            <label for="cutterSelect">Select Cutter Name:</label>
+            <div class="select-container">
+                <div class="select-cell">
+                    <select id="cutterSelect" onchange="loadRecords()">
+                    </select>
+                </div>
+                <div class="btn-plus-cell" style="display: table-cell; width: 45px; padding-left: 8px; vertical-align: middle;">
+                    <button class="btn-plus" onclick="addNewCutter()" title="Add New Cutter">+</button>
+                </div>
+                <div class="btn-delete-cell" style="display: table-cell; width: 45px; padding-left: 8px; vertical-align: middle;">
+                    <button class="btn-delete-dropdown" onclick="deleteCutterFromList()" title="Delete Selected Cutter">🗑️</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="card-action-panel" style="background: #fef2f9; border-color: #fbcfe8;">
+            <div class="panel-title" style="color: #9b59b6;">✂️ CREATE NEW LOT</div>
+            <div class="action-row-split">
+                <input type="text" id="layerNewLotNumber" placeholder="NEW LAYOUT LOT NO" oninput="this.value = this.value.toUpperCase()">
+                <input type="number" id="layerNewGsm" inputmode="numeric" placeholder="GSM (Optional)">
+            </div>
+            <div class="action-row-split" style="margin-top: 4px;">
+                <select id="layerSourceLotSelect"><option value="">-- Loading Running Lots --</option></select>
+                <button class="add-material-btn" style="background: #9b59b6;" onclick="addLotToCurrentLayerQueue()">➕ Add to Layer</button>
+            </div>
+            <div class="layer-build-box">
+                <div style="font-size: 11px; font-weight: bold; color: #701a75; margin-bottom: 3px;">Selected Thans inside current layer layout queue:</div>
+                <div id="layerSelectedItemsContainer" style="font-size: 12px; color: #9d174d; font-style: italic;">No lots queued up yet.</div>
+            </div>
+            <div id="loading" type="button" class="add-material-btn" style="background:#e11d48; text-align:center; color:white; cursor:pointer; font-size:13px; font-weight:bold; padding:10px; border-radius:6px; margin-top:10px; width:100%;" onclick="executeFinalLayerCutMerge()">Create Merged Layer Lot ✂️</button>
+        </div>
+
+        <div class="card-action-panel" style="background: #f2fef7; border-color: #bbf7d0;">
+            <div class="panel-title" style="color: #16a34a;">⬅️ Return Material to Godown</div>
+            <div class="action-row-split">
+                <input type="text" id="globalReturnSearchInput" onkeyup="loadRecords()" placeholder="SHORTCUT SEARCH LOT NO..." oninput="this.value = this.value.toUpperCase()">
+                <select id="globalReturnLotSelect"><option value="">-- Select Target Lot --</option></select>
+            </div>
+            <div id="globalReturnSpecialFields" class="action-row-split" style="display: none;">
+                <input type="number" id="input_global_ret_body" step="0.01" placeholder="Return Body Weight">
+                <input type="number" id="input_global_ret_extra" step="0.01" placeholder="Return Extra Weight">
+            </div>
+            <div id="globalReturnGeneralFields" class="action-row-split" style="display: none;">
+                <input type="number" id="input_global_ret_gen" step="0.01" placeholder="Return Qty (Kg/Mtr)">
+            </div>
+            <div class="action-row-split">
+                <input type="text" id="input_global_ret_challan" placeholder="Challan No" oninput="this.value = this.value.toUpperCase()">
+            </div>
+            <button type="button" class="return-btn" style="width: 100%; border-radius: 6px;" onclick="executeGlobalMasterReturn()">Submit Return ⬅️</button>
+        </div>
+
+        <div class="search-section" style="margin-top:0; margin-bottom:15px;">
+            <label for="searchCutterInput" style="color: #e67e22;">Cutter Lot Search Box:</label>
+            <input type="text" id="searchCutterInput" class="search-input" onkeyup="filterCutterLots()" placeholder="Search by Lot No, Quality or Color...">
+        </div>
+        
+        <div class="history-section">
+            <div class="history-title">✂️ Selected Cutter Current Ledger:</div>
+            <div id="cutterRecordsList"></div>
+        </div>
+    </div>
+</div>
+
+<script>
+    let currentLayerQueue = [];
+
+    document.addEventListener("DOMContentLoaded", function() {
+        initCutterList();
+        loadRecords();
+    });
+
+    function initCutterList() {
+        let cutters = JSON.parse(localStorage.getItem('cutterList')) || ["A HOSIERY", "B HOSIERY", "C HOSIERY"];
+        localStorage.setItem('cutterList', JSON.stringify(cutters));
+        renderCutterDropdowns();
+    }
+
+    function renderCutterDropdowns() {
+        const cutters = JSON.parse(localStorage.getItem('cutterList')) || [];
+        const cutterSelect = document.getElementById('cutterSelect');
+        if(!cutterSelect) return;
+        const currentFilterVal = cutterSelect.value;
+        cutterSelect.innerHTML = '';
+        cutters.forEach(cutter => {
+            const opt = document.createElement('option');
+            opt.value = cutter; opt.innerText = cutter; cutterSelect.appendChild(opt);
+        });
+        if (currentFilterVal && cutters.includes(currentFilterVal)) {
+            cutterSelect.value = currentFilterVal;
+        } else if (cutters.length > 0) {
+            cutterSelect.value = cutters[0];
+        }
+    }
+
+    function addNewCutter() {
+        const name = prompt("Enter New Cutter Master Name:");
+        if (!name) return;
+        const trimmedName = name.trim().toUpperCase();
+        let cutters = JSON.parse(localStorage.getItem('cutterList')) || [];
+        if (!cutters.includes(trimmedName)) { cutters.push(trimmedName); localStorage.setItem('cutterList', JSON.stringify(cutters)); }
+        renderCutterDropdowns(); document.getElementById('cutterSelect').value = trimmedName; loadRecords();
+    }
+
+    function deleteCutterFromList() {
+        const cutterSelect = document.getElementById('cutterSelect');
+        if (confirm(`Delete "${cutterSelect.value}" permanently?`)) {
+            let cutters = JSON.parse(localStorage.getItem('cutterList')) || [];
+            cutters = cutters.filter(c => c !== cutterSelect.value);
+            localStorage.setItem('cutterList', JSON.stringify(cutters));
+            renderCutterDropdowns(); loadRecords();
+        }
+    }
+
+    function transformLotOptionsHTML(fabricRecords, currentId, selectedCutter) {
+        let html = '<option value="">-- Select Source Lot --</option>';
+        let hasLots = false;
+        fabricRecords.forEach(r => {
+            if (r.id !== currentId) {
+                let balances = getCutterStocks(r)[selectedCutter];
+                if (balances && balances.hasActivity) {
+                    let totalCutterWeight = r.isPolo || r.isGrs ? (balances.body + balances.collar + balances.rib) : balances.general;
+                    if (totalCutterWeight > 0.009) {
+                        hasLots = true;
+                        html += `<option value="${r.id}">${r.lotNumber} (${r.fabricName} - ${r.fabricColor || 'NO COLOR'})</option>`;
+                    }
+                }
+            }
+        });
+        return hasLots ? html : '<option value="">-- No Running Lots Found --</option>';
+    }
+
+    function populateLayerSourceLotDropdown(fabricRecords, selectedCutter) {
+        const select = document.getElementById('layerSourceLotSelect');
+        const returnSelect = document.getElementById('globalReturnLotSelect');
+        const searchInput = document.getElementById('globalReturnSearchInput');
+        const searchQuery = searchInput ? searchInput.value.toUpperCase().trim() : "";
+        
+        if (select) select.innerHTML = '<option value="">-- Select Lot to Layer --</option>';
+        if (returnSelect) {
+            returnSelect.innerHTML = '<option value="">-- Select Target Lot for Return --</option>';
+            returnSelect.onchange = updateGlobalReturnFieldsVisibility;
+        }
+
+        fabricRecords.forEach(r => {
+            let balances = getCutterStocks(r)[selectedCutter];
+            if (balances && balances.hasActivity) {
+                let totalCutterWeight = r.isPolo || r.isGrs ? (balances.body + balances.collar + balances.rib) : balances.general;
+                
+                if (totalCutterWeight > 0.009) {
+                    if (select) select.innerHTML += `<option value="${r.id}">${r.lotNumber} (Bal: ${totalCutterWeight.toFixed(3)}k)</option>`;
+                }
+                
+                if (returnSelect) {
+                    const matchText = `${r.lotNumber} ${r.fabricName} ${r.fabricColor || ''}`.toUpperCase();
+                    if (searchQuery === "" || matchText.includes(searchQuery)) {
+                        returnSelect.innerHTML += `<option value="${r.id}">${r.lotNumber} (${r.fabricName} - ${r.fabricColor || 'NO COLOR'})</option>`;
+                    }
+                }
+            }
+        });
+    }
+
+    function updateGlobalReturnFieldsVisibility() {
+        const lotId = parseInt(document.getElementById('globalReturnLotSelect').value);
+        const specBox = document.getElementById('globalReturnSpecialFields');
+        const genBox = document.getElementById('globalReturnGeneralFields');
+        if (!lotId) { specBox.style.display = 'none'; genBox.style.display = 'none'; return; }
+        
+        let records = JSON.parse(localStorage.getItem('fabricRecords')) || [];
+        let r = records.find(x => x.id === lotId);
+        if (!r) return;
+
+        if (r.isPolo || r.isGrs) {
+            specBox.style.display = 'flex'; genBox.style.display = 'none';
+            const extraInput = document.getElementById('input_global_ret_extra');
+            if (extraInput) extraInput.placeholder = r.isPolo ? 'Return Collar Weight' : 'Return Rib Weight';
+        } else {
+            specBox.style.display = 'none'; genBox.style.display = 'flex';
+        }
+    }
+
+    function executeGlobalMasterReturn() {
+        const lotId = parseInt(document.getElementById('globalReturnLotSelect').value);
+        const selectedCutter = document.getElementById('cutterSelect').value;
+        if (!lotId || !selectedCutter) { alert("Please select a valid Lot and Cutter Master!"); return; }
+
+        let records = JSON.parse(localStorage.getItem('fabricRecords')) || [];
+        const idx = records.findIndex(r => r.id === lotId);
+        if (idx === -1) return;
+        const rec = records[idx];
+
+        const timestamp = new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+        const chInput = document.getElementById('input_global_ret_challan');
+        const challanNo = chInput && chInput.value.trim() ? chInput.value.trim().toUpperCase() : "N/A";
+
+        if (rec.isPolo || rec.isGrs) {
+            const bVal = parseFloat(document.getElementById('input_global_ret_body').value) || 0;
+            const eVal = parseFloat(document.getElementById('input_global_ret_extra').value) || 0;
+            if (bVal === 0 && eVal === 0) return;
+
+            if (bVal > 0) rec.returnLogs.push({ cutter: selectedCutter, part: 'BODY', weight: bVal, time: timestamp, challanNo: challanNo, epoch: Date.now() });
+            if (eVal > 0) rec.returnLogs.push({ cutter: selectedCutter, part: rec.isPolo ? 'COLLAR' : 'RIB', weight: eVal, time: timestamp, challanNo: challanNo, epoch: Date.now() + 1 });
+            
+            document.getElementById('input_global_ret_body').value = '';
+            document.getElementById('input_global_ret_extra').value = '';
+        } else {
+            const gVal = parseFloat(document.getElementById('input_global_ret_gen').value) || 0;
+            if (gVal <= 0) return;
+
+            rec.returnLogs.push({ cutter: selectedCutter, part: 'GENERAL', weight: gVal, time: timestamp, challanNo: challanNo, epoch: Date.now() });
+            document.getElementById('input_global_ret_gen').value = '';
+        }
+        if (chInput) chInput.value = '';
+
+        recalculateRecord(rec); records[idx] = rec;
+        localStorage.setItem('fabricRecords', JSON.stringify(records));
+        
+        document.getElementById('globalReturnLotSelect').value = '';
+        const searchInput = document.getElementById('globalReturnSearchInput');
+        if (searchInput) searchInput.value = '';
+        
+        updateGlobalReturnFieldsVisibility();
+        loadRecords();
+        alert("Return recorded successfully!");
+    }
+
+    function addLotToCurrentLayerQueue() {
+        const lotId = parseInt(document.getElementById('layerSourceLotSelect').value);
+        if (!lotId) return;
+        if (currentLayerQueue.some(item => item.id === lotId)) return;
+        
+        let records = JSON.parse(localStorage.getItem('fabricRecords')) || [];
+        let r = records.find(x => x.id === lotId);
+        if (!r) return;
+        
+        const selectedCutter = document.getElementById('cutterSelect').value;
+        let srcHandBalances = getCutterStocks(r)[selectedCutter];
+        let maxAvailable = r.isPolo || r.isGrs ? (srcHandBalances.body + srcHandBalances.collar + srcHandBalances.rib) : srcHandBalances.general;
+        
+        let mergeQtyInput = prompt(`Enter weight (Kg) to merge from Lot ${r.lotNumber} (Max Available: ${maxAvailable.toFixed(3)} Kg):`, maxAvailable.toFixed(3));
+        if (mergeQtyInput === null) return;
+        
+        let mergeQty = parseFloat(mergeQtyInput);
+        if (isNaN(mergeQty) || mergeQty <= 0 || mergeQty > (maxAvailable + 0.009)) {
+            alert("Invalid quantity entered!"); return;
+        }
+
+        currentLayerQueue.push({ id: lotId, weight: mergeQty });
+        const container = document.getElementById('layerSelectedItemsContainer');
+        container.innerHTML = '';
+        currentLayerQueue.forEach(item => {
+            let recordData = records.find(x => x.id === item.id);
+            container.innerHTML += `<span class="layer-item-tag">🏷️ Lot: ${recordData.lotNumber} (${item.weight.toFixed(3)} Kg)</span> `;
+        });
+    }
+
+    function executeFinalLayerCutMerge() {
+        const newLotNo = document.getElementById('layerNewLotNumber').value.trim().toUpperCase();
+        const selectedCutter = document.getElementById('cutterSelect').value;
+        if (!newLotNo || currentLayerQueue.length < 1) return;
+
+        let records = JSON.parse(localStorage.getItem('fabricRecords')) || [];
+        const d = new Date();
+        const shortMonths = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+        let hr = d.getHours(); const ampm = hr >= 12 ? 'PM' : 'AM'; hr = hr % 12; hr = hr ? hr : 12;
+        const timestamp = `${shortMonths[d.getMonth()]} ${d.getDate()}, ${String(hr).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}:${String(d.getSeconds()).padStart(2, '0')} AMPM`;
+        const epochBase = Date.now();
+
+        let totalMergedWeight = 0, fabricQualitiesFound = [], fabricColorsList = [], historyTrackingNote = "Merged Layer Layout from Lots: ";
+
+        for (let i = 0; i < currentLayerQueue.length; i++) {
+            let item = currentLayerQueue[i];
+            let sId = item.id, recIndex = records.findIndex(r => r.id === sId);
+            if (recIndex === -1) continue;
+            let srcRec = records[recIndex];
+            let targetWeightToDeduct = item.weight;
+
+            totalMergedWeight += targetWeightToDeduct;
+            fabricQualitiesFound.push(srcRec.fabricName);
+            fabricColorsList.push(srcRec.fabricColor || "NO COLOR");
+            historyTrackingNote += `${srcRec.lotNumber} (${targetWeightToDeduct.toFixed(3)} Kg), `;
+
+            let currentCutterHand = getCutterStocks(srcRec)[selectedCutter];
+
+            if (srcRec.isPolo || srcRec.isGrs) {
+                let remainingToDeduct = targetWeightToDeduct;
+                if (srcRec.isPolo) {
+                    if (currentCutterHand.body > 0 && remainingToDeduct > 0) {
+                        let deductBody = Math.min(remainingToDeduct, currentCutterHand.body);
+                        srcRec.transferLogs.push({ cutter: selectedCutter, part: 'BODY', weight: -deductBody, time: timestamp, epoch: epochBase + i * 10 });
+                        remainingToDeduct -= deductBody;
+                    }
+                    if (currentCutterHand.collar > 0 && remainingToDeduct > 0) {
+                        let deductCollar = Math.min(remainingToDeduct, currentCutterHand.collar);
+                        srcRec.transferLogs.push({ cutter: selectedCutter, part: 'COLLAR', weight: -deductCollar, time: timestamp, epoch: epochBase + i * 10 + 1 });
+                    }
+                } else if (srcRec.isGrs) {
+                    if (currentCutterHand.body > 0 && remainingToDeduct > 0) {
+                        let deductBody = Math.min(remainingToDeduct, currentCutterHand.body);
+                        srcRec.transferLogs.push({ cutter: selectedCutter, part: 'BODY', weight: -deductBody, time: timestamp, epoch: epochBase + i * 10 });
+                        remainingToDeduct -= deductBody;
+                    }
+                    if (currentCutterHand.rib > 0 && remainingToDeduct > 0) {
+                        let deductRib = Math.min(remainingToDeduct, currentCutterHand.rib);
+                        srcRec.transferLogs.push({ cutter: selectedCutter, part: 'BODY', weight: -deductRib, time: timestamp, epoch: epochBase + i * 10 + 1 });
+                    }
+                }
+            } else {
+                srcRec.transferLogs.push({ cutter: selectedCutter, part: 'GENERAL', weight: -targetWeightToDeduct, time: timestamp, epoch: epochBase + i * 10 });
+            }
+            
+            srcRec.transferLogs.push({ cutter: `LENT TO LAYER CUT ${newLotNo}`, part: srcRec.isPolo || srcRec.isGrs ? 'BODY' : 'GENERAL', weight: targetWeightToDeduct, time: timestamp, epoch: epochBase + i * 10 + 5 });
+            recalculateRecord(srcRec); records[recIndex] = srcRec;
+        }
+
+        let uniqueColorsSet = [...new Set(fabricColorsList)];
+        let finalColor = uniqueColorsSet.length === 1 ? uniqueColorsSet[0] : `${fabricColorsList.length} COLORS ASSORTED`;
+
+        const mergedLayerRecord = {
+            id: Date.now(), date: new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' }),
+            fabricName: fabricQualitiesFound[0] || "MICRO MODAL", fabricColor: finalColor, isPolo: false, isGrs: false, lotNumber: newLotNo, batchNumber: "LAY-MIX", ribLotNumber: "N/A", ribBatchNumber: "LAY-MIX", gsm: document.getElementById('layerNewGsm').value.trim() || "N/A",
+            rollWeight: totalMergedWeight, bodyWeight: totalMergedWeight, collarWeight: 0, ribWeight: 0, remainingBodyWH: 0, remainingCollarWH: 0, remainingRibWH: 0, remainingGeneralWH: 0, totalCutWeight: 0, cuttingLogs: [],
+            transferLogs: [{ cutter: selectedCutter, part: "GENERAL", weight: totalMergedWeight, time: timestamp, epoch: epochBase + 1000 }], returnLogs: [], outsideMaterialLogs: [{ cutter: selectedCutter, part: "GENERAL", weight: totalMergedWeight, sourceLot: historyTrackingNote.replace(/,\s*$/, ""), time: timestamp, epoch: epochBase + 1001 }]
+        };
+
+        records.unshift(mergedLayerRecord); localStorage.setItem('fabricRecords', JSON.stringify(records));
+        currentLayerQueue = []; document.getElementById('layerNewLotNumber').value = ''; document.getElementById('layerNewGsm').value = ''; document.getElementById('layerSelectedItemsContainer').innerHTML = 'No lots queued up yet.';
+        loadRecords(); alert(`Successfully merged into Lot: ${newLotNo}`);
+    }
+
+    function executeCutterPageCut(id, isSpecial, selectedCutter) {
+        let records = JSON.parse(localStorage.getItem('fabricRecords')) || [];
+        const idx = records.findIndex(r => r.id === id);
+        if (idx === -1) return; const rec = records[idx];
+        const d = new Date();
+        const shortMonths = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+        let hr = d.getHours(); const ampm = hr >= 12 ? 'PM' : 'AM'; hr = hr % 12; hr = hr ? hr : 12;
+        const timestamp = `${shortMonths[d.getMonth()]} ${d.getDate()}, ${String(hr).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')} AMPM`;
+        
+        const chInput = document.getElementById(`input_pagecut_ch_${id}`);
+        const challanNo = chInput && chInput.value.trim() ? chInput.value.trim().toUpperCase() : "N/A";
+
+        if (isSpecial) {
+            const bCut = parseFloat(document.getElementById(`input_pagecut_body_${id}`).value) || 0;
+            const extraCut = parseFloat(document.getElementById(`input_pagecut_extra_${id}`).value) || 0;
+            if (bCut === 0 && extraCut === 0) return;
+            
+            rec.cuttingLogs.push({ logId: Date.now(), cutter: selectedCutter, time: timestamp, isPoloLog: rec.isPolo, isGrsLog: rec.isGrs, bodyWeight: bCut, collarWeight: rec.isPolo ? extraCut : 0, ribWeight: rec.isGrs ? extraCut : 0, weight: bCut + extraCut, challanNo: challanNo, epoch: Date.now() });
+            document.getElementById(`input_pagecut_body_${id}`).value = ''; document.getElementById(`input_pagecut_extra_${id}`).value = '';
+        } else {
+            const val = parseFloat(document.getElementById(`input_pagecut_gen_${id}`).value) || 0; if (val <= 0) return;
+            
+            rec.cuttingLogs.push({ logId: Date.now(), cutter: selectedCutter, time: timestamp, isPoloLog: false, isGrsLog: false, weight: val, challanNo: challanNo, epoch: Date.now() });
+            document.getElementById(`input_pagecut_gen_${id}`).value = '';
+        }
+        if (chInput) chInput.value = '';
+        records[idx] = rec; localStorage.setItem('fabricRecords', JSON.stringify(records)); loadRecords();
+    }
+
+    function executeAddOutsideMaterial(id, isSpecial, selectedCutter) {
+        const sourceLotId = parseInt(document.getElementById(`source_lot_select_${id}`).value);
+        if (!sourceLotId) return;
+        let records = JSON.parse(localStorage.getItem('fabricRecords')) || [];
+        const currentIdx = records.findIndex(r => r.id === id), sourceIdx = records.findIndex(r => r.id === sourceLotId);
+        if (currentIdx === -1 || sourceIdx === -1) return;
+        
+        const currentRec = records[currentIdx], sourceRec = records[sourceIdx];
+        const timestamp = new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+        const currentEpoch = Date.now();
+        let sourceStocks = getCutterStocks(sourceRec)[selectedCutter];
+
+        if (isSpecial) {
+            const bVal = parseFloat(document.getElementById(`input_outside_body_${id}`).value) || 0;
+            const eVal = parseFloat(document.getElementById(`input_outside_extra_${id}`).value) || 0;
+            let totalRequestedOutside = bVal + eVal;
+            if (sourceRec.isPolo || sourceRec.isGrs) {
+                if (bVal > sourceStocks.body || eVal > (sourceRec.isPolo ? sourceStocks.collar : sourceStocks.rib)) {
+                    alert(`❌ Borrow Denied! Insufficient component stock.`); return;
+                }
+                if (bVal > 0) sourceRec.transferLogs.push({ cutter: selectedCutter, part: 'BODY', weight: -bVal, time: timestamp, targetLot: currentRec.lotNumber, epoch: currentEpoch });
+                if (eVal > 0) sourceRec.transferLogs.push({ cutter: selectedCutter, part: sourceRec.isPolo ? 'COLLAR' : 'RIB', weight: -eVal, time: timestamp, targetLot: currentRec.lotNumber, epoch: currentEpoch + 1 });
+            } else {
+                if (totalRequestedOutside > sourceStocks.general) { alert(`❌ Borrow Denied!`); return; }
+                if (totalRequestedOutside > 0) sourceRec.transferLogs.push({ cutter: selectedCutter, part: 'GENERAL', weight: -totalRequestedOutside, time: timestamp, targetLot: currentRec.lotNumber, epoch: currentEpoch });
+            }
+            sourceRec.transferLogs.push({ cutter: `LENT TO LOT ${currentRec.lotNumber}`, part: 'GENERAL', weight: totalRequestedOutside, time: timestamp, epoch: currentEpoch + 2 });
+            if (!currentRec.outsideMaterialLogs) currentRec.outsideMaterialLogs = [];
+            if (bVal > 0) currentRec.outsideMaterialLogs.push({ cutter: selectedCutter, part: 'BODY', weight: bVal, sourceLot: sourceRec.lotNumber, time: timestamp, epoch: currentEpoch + 3 });
+            if (eVal > 0) currentRec.outsideMaterialLogs.push({ cutter: selectedCutter, part: currentRec.isPolo ? 'COLLAR' : 'RIB', weight: eVal, sourceLot: sourceRec.lotNumber, time: timestamp, epoch: currentEpoch + 4 });
+        } else {
+            const gVal = parseFloat(document.getElementById(`input_outside_gen_${id}`).value) || 0; if (gVal <= 0) return;
+            if (gVal > sourceStocks.general) { alert(`❌ Borrow Denied!`); return; }
+            sourceRec.transferLogs.push({ cutter: selectedCutter, part: 'GENERAL', weight: -gVal, time: timestamp, targetLot: currentRec.lotNumber, epoch: currentEpoch });
+            sourceRec.transferLogs.push({ cutter: `LENT TO LOT ${currentRec.lotNumber}`, part: 'GENERAL', weight: gVal, time: timestamp, epoch: currentEpoch + 1 });
+            if (!currentRec.outsideMaterialLogs) currentRec.outsideMaterialLogs = [];
+            currentRec.outsideMaterialLogs.push({ cutter: selectedCutter, part: 'GENERAL', weight: gVal, sourceLot: sourceRec.lotNumber, time: timestamp, epoch: currentEpoch + 2 });
+        }
+        recalculateRecord(sourceRec); recalculateRecord(currentRec);
+        records[sourceIdx] = sourceRec; records[currentIdx] = currentRec;
+        localStorage.setItem('fabricRecords', JSON.stringify(records)); loadRecords();
+    }
+
+    function getCutterStocks(record) {
+        const cuttersList = JSON.parse(localStorage.getItem('cutterList')) || ["A HOSIERY", "B HOSIERY", "C HOSIERY"];
+        let cutters = {};
+        cuttersList.forEach(c => { cutters[c] = { body: 0, collar: 0, rib: 0, general: 0, issuedBody: 0, issuedCollar: 0, issuedRib: 0, issuedGeneral: 0, cutBody: 0, cutCollar: 0, cutRib: 0, cutGeneral: 0, addedOutsideBody: 0, addedOutsideExtra: 0, addedOutsideGeneral: 0, hasActivity: false, cycleIssuedGen: 0, cycleCutGen: 0, cycleIssuedBody: 0, cycleCutBody: 0, cycleIssuedCollar: 0, cycleCutColrar: 0, cycleIssuedRib: 0, cycleCutRib: 0 }; });
+        
+        let timelineEvents = [];
+        if(record.transferLogs) {
+            record.transferLogs.forEach((log, idx) => {
+                timelineEvents.push({ type: 'TRANSFER', cutter: log.cutter, part: log.part, weight: log.weight, time: log.epoch || Date.parse(log.time + " 2026") || 0, cycle: idx });
+            });
+        }
+        if (record.outsideMaterialLogs) {
+            record.outsideMaterialLogs.forEach((log, idx) => {
+                if (record.batchNumber === "LAY-MIX" && log.sourceLot && log.sourceLot.includes("Merged Layer Layout")) return;
+                timelineEvents.push({ type: 'BORROW', cutter: log.cutter, part: log.part, weight: log.weight, time: log.epoch || Date.parse(log.time + " 2026") || 0, cycle: idx });
+            });
+        }
+        if(record.cuttingLogs) {
+            record.cuttingLogs.forEach((log, idx) => {
+                timelineEvents.push({ type: 'CUT', cutter: log.cutter, bodyWeight: log.bodyWeight || 0, collarWeight: log.collarWeight || 0, ribWeight: log.ribWeight || 0, weight: log.weight || 0, time: log.epoch || log.logId || Date.parse(log.time + " 2026") || 0, cycle: idx });
+            });
+        }
+        if (record.returnLogs) {
+            record.returnLogs.forEach((log, idx) => {
+                timelineEvents.push({ type: 'RETURN', cutter: log.cutter, part: log.part, weight: log.weight, time: log.epoch || Date.parse(log.time + " 2026") || 0, cycle: idx });
+            });
+        }
+
+        timelineEvents.sort((a, b) => {
+            if (a.time !== b.time) return a.time - b.time;
+            if (a.cycle !== b.cycle) return a.cycle - b.cycle;
+            const typeWeight = { 'TRANSFER': 1, 'BORROW': 2, 'CUT': 3, 'RETURN': 4 };
+            return typeWeight[a.type] - typeWeight[b.type];
+        });
+
+        timelineEvents.forEach(log => {
+            if (cutters[log.cutter]) {
+                let c = cutters[log.cutter]; c.hasActivity = true;
+                if (log.type === 'TRANSFER') {
+                    if (log.part === 'BODY') { c.body += log.weight; c.cycleIssuedBody += log.weight; }
+                    else if (log.part === 'COLLAR') { c.collar += log.weight; c.cycleIssuedCollar += log.weight; }
+                    else if (log.part === 'RIB') { c.rib += log.weight; c.cycleIssuedRib += log.weight; }
+                    else { c.general += log.weight; c.cycleIssuedGen += log.weight; }
+                }
+                else if (log.type === 'BORROW') {
+                    if (log.part === 'BODY') { c.body += log.weight; c.cycleIssuedBody += log.weight; }
+                    else if (log.part === 'COLLAR' || log.part === 'RIB') {
+                        if (record.isPolo) { c.collar += log.weight; c.cycleIssuedCollar += log.weight; }
+                        else { c.rib += log.weight; c.cycleIssuedRib += log.weight; }
+                    } else { c.general += log.weight; c.cycleIssuedGen += log.weight; }
+                }
+                else if (log.type === 'CUT') {
+                    if (record.isPolo || record.isGrs) { 
+                        c.body = Math.max(0, c.body - log.bodyWeight); c.collar = Math.max(0, c.collar - log.collarWeight); c.rib = Math.max(0, c.rib - log.ribWeight); 
+                    } else { c.general = Math.max(0, c.general - log.weight); }
+                }
+                else if (log.type === 'RETURN') {
+                    if (log.part === 'BODY') c.body = Math.max(0, c.body - log.weight);
+                    else if (log.part === 'COLLAR' || log.part === 'RIB') {
+                        if (record.isPolo) c.collar = Math.max(0, c.collar - log.weight); else c.rib = Math.max(0, c.rib - log.weight);
+                    } else c.general = Math.max(0, c.general - log.weight);
+                }
+            }
+        });
+        return cutters;
+    }
+
+    function recalculateRecord(record) {
+        let totalCut = 0, transBody = 0, transCollar = 0, transRib = 0, transGen = 0;
+        let retBody = 0, retCollar = 0, retRib = 0, retGen = 0;
+        let cutBody = 0, cutCollar = 0, cutRib = 0, cutGen = 0;
+        let outBody = 0, outCollar = 0, outRib = 0, outGen = 0;
+        if(record.cuttingLogs) { 
+            record.cuttingLogs.forEach(log => { 
+                totalCut += log.weight; 
+                if (record.isPolo || record.isGrs) {
+                    cutBody += log.bodyWeight || 0;
+                    if (record.isPolo) cutCollar += log.collarWeight || 0;
+                    else cutRib += log.ribWeight || 0;
+                } else {
+                    cutGen += log.weight;
+                }
+            }); 
+        }
+        record.totalCutWeight = totalCut;
+        if(record.transferLogs) {
+            record.transferLogs.forEach(log => {
+                if (log.part === 'BODY') transBody += log.weight;
+                else if (log.part === 'COLLAR') transCollar += log.weight;
+                else if (log.part === 'RIB') transRib += log.weight;
+                else transGen += log.weight;
+            });
+        }
+        if (record.returnLogs) {
+            record.returnLogs.forEach(log => {
+                if (log.part === 'BODY') retBody += log.weight;
+                else if (log.part === 'COLLAR') retCollar += log.weight;
+                else if (log.part === 'RIB') retRib += log.weight;
+                else retGen += log.weight;
+            });
+        }
+        if (record.outsideMaterialLogs) {
+            record.outsideMaterialLogs.forEach(log => {
+                if (log.sourceLot && log.sourceLot.includes("Merged")) return;
+                if (log.part === 'BODY') outBody += log.weight;
+                else if (log.part === 'COLLAR') outCollar += log.weight;
+                else if (log.part === 'RIB') outRib += log.weight;
+                else outGen += log.weight;
+            });
+        }
+        if (record.isPolo) {
+            let excessBody = Math.max(0, cutBody - (transBody + outBody));
+            let excessCollar = Math.max(0, cutCollar - (transCollar + outCollar));
+            record.remainingBodyWH = record.bodyWeight - transBody + retBody - excessBody;
+            record.remainingCollarWH = record.collarWeight - transCollar + retCollar - excessCollar;
+        } else if (record.isGrs) {
+            let excessBody = Math.max(0, cutBody - (transBody + outBody));
+            let excessRib = Math.max(0, cutRib - (transRib + outRib));
+            record.remainingBodyWH = record.bodyWeight - transBody + retBody - excessBody;
+            record.remainingRibWH = record.ribWeight - transRib + retRib - excessRib;
+        } else {
+            let excessGen = Math.max(0, cutGen - (transGen + outGen));
+            record.remainingGeneralWH = record.rollWeight - transGen + retGen - excessGen;
+        }
+    }
+
+    function filterCutterLots() { const query = document.getElementById('searchCutterInput').value.toLowerCase().trim(); const cards = document.querySelectorAll('#cutter_page .record-card'); cards.forEach(card => { if (card.innerText.toLowerCase().includes(query)) card.style.display = "block"; else card.style.display = "none"; }); }
+
+    function checkLifo(record, targetEpoch) {
+        let maxEpoch = 0;
+        if (record.transferLogs) record.transferLogs.forEach(l => { if((l.epoch || 0) > maxEpoch) maxEpoch = l.epoch; });
+        if (record.cuttingLogs) record.cuttingLogs.forEach(l => { if((l.epoch || 0) > maxEpoch) maxEpoch = l.epoch; });
+        if (record.returnLogs) record.returnLogs.forEach(l => { if((l.epoch || 0) > maxEpoch) maxEpoch = l.epoch; });
+        if (record.outsideMaterialLogs) record.outsideMaterialLogs.forEach(l => { if((l.epoch || 0) > maxEpoch) maxEpoch = l.epoch; });
+        
+        if (targetEpoch < maxEpoch) {
+            alert("❌ ডিলিট করা সম্ভব নয়! নিয়ম অনুযায়ী আপনাকে প্রথমে এর পরের লেটেস্ট অ্যাক্টিভিটিটি ডিলিট করতে হবে (LIFO Rule)।");
+            return false;
+        }
+        return true;
+    }
+
+    function deleteCuttingLog(lotId, logId) {
+        if (confirm("Are you sure you want to delete this cutting entry?")) {
+            let records = JSON.parse(localStorage.getItem('fabricRecords')) || [];
+            const lotIndex = records.findIndex(r => r.id === lotId);
+            if (lotIndex === -1) return;
+            const logItem = records[lotIndex].cuttingLogs.find(l => l.logId === logId);
+            if (logItem && !checkLifo(records[lotIndex], logItem.epoch || logItem.logId || 0)) return;
+            
+            records[lotIndex].cuttingLogs = records[lotIndex].cuttingLogs.filter(l => l.logId !== logId);
+            recalculateRecord(records[lotIndex]);
+            localStorage.setItem('fabricRecords', JSON.stringify(records));
+            loadRecords();
+        }
+    }
+
+    function deleteReturnLog(lotId, epochId) {
+        if (confirm("Are you sure you want to delete this return entry?")) {
+            let records = JSON.parse(localStorage.getItem('fabricRecords')) || [];
+            const lotIndex = records.findIndex(r => r.id === lotId);
+            if (lotIndex === -1) return;
+            const logItem = records[lotIndex].returnLogs.find(l => l.epoch === epochId);
+            if (logItem && !checkLifo(records[lotIndex], logItem.epoch || 0)) return;
+            
+            records[lotIndex].returnLogs = records[lotIndex].returnLogs.filter(l => l.epoch !== epochId);
+            recalculateRecord(records[lotIndex]);
+            localStorage.setItem('fabricRecords', JSON.stringify(records));
+            loadRecords();
+        }
+    }
+
+    function deleteTransferLog(lotId, epoch) {
+        let records = JSON.parse(localStorage.getItem('fabricRecords')) || [];
+        const lotIndex = records.findIndex(r => r.id === lotId);
+        if (lotIndex === -1) return;
+        const record = records[lotIndex];
+        if (!checkLifo(record, epoch)) return;
+        
+        if (confirm("Are you sure you want to delete this issue/transfer entry?")) {
+            const logToDelete = record.transferLogs.find(l => l.epoch === epoch);
+            if (logToDelete && String(logToDelete.cutter).startsWith("MERGED INTO GODOWN LOT ")) {
+                const targetLotNo = String(logToDelete.cutter).replace("MERGED INTO GODOWN LOT ", "").trim();
+                const mergedLot = records.find(r => r.lotNumber === targetLotNo && r.batchNumber === "GODOWN-MIX");
+                if (mergedLot) {
+                    let mergedMax = 0;
+                    if (mergedLot.transferLogs) mergedLot.transferLogs.forEach(l => { if(l.epoch > mergedMax) mergedMax = l.epoch; });
+                    if (mergedLot.cuttingLogs) mergedLot.cuttingLogs.forEach(l => { if(l.epoch > mergedMax) mergedMax = l.epoch; });
+                    if (mergedLot.returnLogs) mergedLot.returnLogs.forEach(l => { if(l.epoch > mergedMax) mergedMax = l.epoch; });
+                    const initialLog = mergedLot.outsideMaterialLogs ? mergedLot.outsideMaterialLogs[0] : null;
+                    if (mergedMax > (initialLog ? (initialLog.epoch || 0) : 0)) {
+                        alert("❌ ডিলিট করা সম্ভব নয়! এই মার্জ করা লটটি (" + targetLotNo + ") ইতিমধ্যে ব্যবহার করা হয়েছে। প্রথমে ওই লটের অ্যাক্টিভিটি ডিলিট করুন।");
+                        return;
+                    }
+                    records = records.filter(r => r.id !== mergedLot.id);
+                }
+                records.forEach(r => {
+                    if (r.transferLogs) {
+                        r.transferLogs = r.transferLogs.filter(l => l.cutter !== `MERGED INTO GODOWN LOT ${targetLotNo}`);
+                        recalculateRecord(r);
+                    }
+                });
+            } else if (logToDelete && String(logToDelete.cutter).startsWith("LENT TO LAYER CUT ")) {
+                const targetLotNo = String(logToDelete.cutter).replace("LENT TO LAYER CUT ", "").trim();
+                const mergedLot = records.find(r => r.lotNumber === targetLotNo && r.batchNumber === "LAY-MIX");
+                if (mergedLot) {
+                    let mergedMax = 0;
+                    if (mergedLot.transferLogs) mergedLot.transferLogs.forEach(l => { if(l.epoch > mergedMax) mergedMax = l.epoch; });
+                    if (mergedLot.cuttingLogs) mergedLot.cuttingLogs.forEach(l => { if(l.epoch > mergedMax) mergedMax = l.epoch; });
+                    if (mergedLot.returnLogs) mergedLot.returnLogs.forEach(l => { if(l.epoch > mergedMax) mergedMax = l.epoch; });
+                    const initialLog = mergedLot.outsideMaterialLogs ? mergedLot.outsideMaterialLogs[0] : null;
+                    if (mergedMax > (initialLog ? (initialLog.epoch || 0) : 0)) {
+                        alert("❌ ডিলিট করা সম্ভব নয়! এই মার্জ করা লেয়ার লটটি (" + targetLotNo + ") ইতিমধ্যে ব্যবহার করা হয়েছে।");
+                        return;
+                    }
+                    records = records.filter(r => r.id !== mergedLot.id);
+                }
+                records.forEach(r => {
+                    if (r.transferLogs) {
+                        r.transferLogs = r.transferLogs.filter(l => l.cutter !== `LENT TO LAYER CUT ${targetLotNo}`);
+                        recalculateRecord(r);
+                    }
+                });
+            } else if (logToDelete && String(logToDelete.cutter).startsWith("LENT TO LOT ")) {
+                const targetLotNo = String(logToDelete.cutter).replace("LENT TO LOT ", "").trim();
+                const targetLot = records.find(r => r.lotNumber === targetLotNo);
+                if (targetLot) {
+                    let targetMax = 0;
+                    if (targetLot.transferLogs) targetLot.transferLogs.forEach(l => { if(targetMax < l.epoch) targetMax = l.epoch; });
+                    if (targetLot.cuttingLogs) targetLot.cuttingLogs.forEach(l => { if(targetMax < l.epoch) targetMax = l.epoch; });
+                    if (targetLot.returnLogs) targetLot.returnLogs.forEach(l => { if(targetMax < l.epoch) targetMax = l.epoch; });
+                    if (targetLot.outsideMaterialLogs) targetLot.outsideMaterialLogs.forEach(l => { if(targetMax < l.epoch) targetMax = l.epoch; });
+                    
+                    let maxBorrowEpochInTarget = 0;
+                    if (targetLot.outsideMaterialLogs) {
+                        targetLot.outsideMaterialLogs.forEach(l => {
+                            if (l.sourceLot === record.lotNumber && Math.abs(l.epoch - logToDelete.epoch) <= 10) {
+                                if (l.epoch > maxBorrowEpochInTarget) maxBorrowEpochInTarget = l.epoch;
+                            }
+                        });
+                    }
+                    
+                    if (maxBorrowEpochInTarget > 0 && targetMax > maxBorrowEpochInTarget) {
+                        alert("❌ ডিলিট করা সম্ভব নয়! এই ধার দেওয়া লটটি (" + targetLotNo + ") ইতিমধ্যে কাটিং বা অন্য কাজে ব্যবহার করা হয়েছে (LIFO Rule)। প্রথমে ওই লটের লেটেস্ট অ্যাক্টিভিটি ডিলিট করুন।");
+                        return;
+                    }
+                    
+                    record.transferLogs = record.transferLogs.filter(l => !(Math.abs(l.epoch - logToDelete.epoch) <= 10 && (l.targetLot === targetLotNo || String(l.cutter) === String(logToDelete.cutter) || String(l.targetLot) === targetLotNo)));
+                    targetLot.outsideMaterialLogs = targetLot.outsideMaterialLogs.filter(l => !(l.sourceLot === record.lotNumber && Math.abs(l.epoch - logToDelete.epoch) <= 10));
+                    recalculateRecord(targetLot);
+                    recalculateRecord(record);
+                } else {
+                    record.transferLogs = record.transferLogs.filter(l => !(Math.abs(l.epoch - logToDelete.epoch) <= 10 && (l.targetLot === targetLotNo || String(l.cutter) === String(logToDelete.cutter))));
+                    recalculateRecord(record);
+                }
+            } else {
+                record.transferLogs = record.transferLogs.filter(l => l.epoch !== epoch);
+                recalculateRecord(record);
+            }
+            localStorage.setItem('fabricRecords', JSON.stringify(records));
+            loadRecords();
+        }
+    }
+
+    function deleteOutsideLog(lotId, epoch) {
+        let records = JSON.parse(localStorage.getItem('fabricRecords')) || [];
+        const lotIndex = records.findIndex(r => r.id === lotId);
+        if (lotIndex === -1) return;
+        const record = records[lotIndex];
+        if (!checkLifo(record, epoch)) return;
+        
+        if (confirm("Are you sure you want to delete this creation/borrow entry?")) {
+            const logToDelete = record.outsideMaterialLogs.find(l => l.epoch === epoch);
+            if (logToDelete && (record.batchNumber === "GODOWN-MIX" || record.batchNumber === "LAY-MIX")) {
+                const targetLotNo = record.lotNumber;
+                records.forEach(r => {
+                    if (r.transferLogs) {
+                        r.transferLogs = r.transferLogs.filter(l => l.cutter !== `MERGED INTO GODOWN LOT ${targetLotNo}` && l.cutter !== `LENT TO LAYER CUT ${targetLotNo}`);
+                        recalculateRecord(r);
+                    }
+                });
+                records = records.filter(r => r.id !== lotId);
+            } else if (logToDelete) {
+                const sourceLotNo = logToDelete.sourceLot;
+                const sourceLot = records.find(r => r.lotNumber === sourceLotNo);
+                if (sourceLot) {
+                    sourceLot.transferLogs = sourceLot.transferLogs.filter(l => !(Math.abs(l.epoch - logToDelete.epoch) <= 10 && (l.targetLot === record.lotNumber || String(l.cutter) === `LENT TO LOT ${record.lotNumber}`)));
+                    recalculateRecord(sourceLot);
+                }
+                record.outsideMaterialLogs = record.outsideMaterialLogs.filter(l => !(l.sourceLot === sourceLotNo && Math.abs(l.epoch - logToDelete.epoch) <= 10));
+                recalculateRecord(record);
+            }
+            localStorage.setItem('fabricRecords', JSON.stringify(records));
+            loadRecords();
+        }
+    }
+
+    function loadRecords() {
+        const records = JSON.parse(localStorage.getItem('fabricRecords')) || [];
+        const cutterList = document.getElementById('cutterRecordsList');
+        if(!cutterList) return; cutterList.innerHTML = '';
+
+        const activeCutter = document.getElementById('cutterSelect').value;
+        let activeCutterLotCount = 0;
+        populateLayerSourceLotDropdown(records, activeCutter);
+
+        records.forEach(record => {
+            recalculateRecord(record);
+            let cutterBalances = getCutterStocks(record);
+            let currentCutterData = cutterBalances[activeCutter];
+
+            if (currentCutterData && currentCutterData.hasActivity) {
+                const labelExtra = record.isPolo ? 'collar' : 'rib';
+                let hasStockRemaining = false;
+                let cBodyBal = Math.max(0, currentCutterData.body), cExtraBal = Math.max(0, currentCutterData[labelExtra]), cGenBal = Math.max(0, currentCutterData.general);
+
+                if (currentCutterData.body > 0.009 || currentCutterData[labelExtra] > 0.009) hasStockRemaining = true;
+                if (!record.isPolo && !record.isGrs && currentCutterData.general > 0.009) hasStockRemaining = true;
+
+                if (hasStockRemaining) {
+                    activeCutterLotCount++;
+                    let cutterCardStockHTML = '', cutterCardActionHTML = '';
+                    const labelExtraBn = record.isPolo ? 'Collar' : 'Rib', sourceLotOptionsHTML = transformLotOptionsHTML(records, record.id, activeCutter);
+                    let uStr = record.isTextile ? "Mtr" : "Kg"; let uAbbr = record.isTextile ? "M" : "k";
+
+                    if (record.isPolo || record.isGrs) {
+                        cutterCardStockHTML = `<div class="stock-display-grid" style="background:#fffcf4; border-color:#ffe2b3;" onclick="event.stopPropagation();"><b>👤 Balance:</b> Body: ${cBodyBal.toFixed(3)}${uAbbr} \| ${labelExtraBn}: ${cExtraBal.toFixed(3)}${uAbbr}</div>`;
+                        cutterCardActionHTML = `
+                            <div class="card-action-panel">
+                                <div class="panel-title" style="color:#e67e22;">✂️ Cutting Production</div>
+                                <div class="action-row-split">
+                                    <input type="number" id="input_pagecut_body_${record.id}" step="0.01" placeholder="Body">
+                                    <input type="number" id="input_pagecut_extra_${record.id}" step="0.01" placeholder="${labelExtraBn}">
+                                    <input type="text" id="input_pagecut_ch_${record.id}" placeholder="Challan No">
+                                    <button class="cut-btn" onclick="executeCutterPageCut(${record.id}, true, '${activeCutter}')">Add Cut</button>
+                                </div>
+                                <div class="panel-title" style="color:#9b59b6; margin-top:5px; border-top:1px solid #cbd5e1; padding-top:3px;">📦 Borrow Fabric From Another Lot</div>
+                                <div class="action-row-split">
+                                    <select id="source_lot_select_${record.id}">${sourceLotOptionsHTML}</select>
+                                    <input type="number" id="input_outside_body_${record.id}" step="0.01" placeholder="Borrow Body">
+                                    <input type="number" id="input_outside_extra_${record.id}" step="0.01" placeholder="Borrow ${labelExtraBn}">
+                                    <button class="add-material-btn" onclick="executeAddOutsideMaterial(${record.id}, true, '${activeCutter}')">Add ➕</button>
+                                </div>
+                            </div>`;
+                    } else {
+                        cutterCardStockHTML = `<div class="stock-display-grid" style="background:#fffcf4; border-color:#ffe2b3;" onclick="event.stopPropagation();"><b>👤 Balance:</b> ${cGenBal.toFixed(3)} ${uStr}</div>`;
+                        cutterCardActionHTML = `
+                            <div class="card-action-panel">
+                                <div class="panel-title" style="color:#e67e22;">✂️ Cutting Production</div>
+                                <div class="action-row-split">
+                                    <input type="number" id="input_pagecut_gen_${record.id}" step="0.01" placeholder="Qty (${uStr})">
+                                    <input type="text" id="input_pagecut_ch_${record.id}" placeholder="Challan No">
+                                    <button class="cut-btn" onclick="executeCutterPageCut(${record.id}, false, '${activeCutter}')">Add Cut</button>
+                                </div>
+                                <div class="panel-title" style="color:#9b59b6; margin-top:5px; border-top:1px solid #cbd5e1; padding-top:3px;">📦 Borrow Fabric From Another Lot</div>
+                                <div class="action-row-split">
+                                    <select id="source_lot_select_${record.id}">${sourceLotOptionsHTML}</select>
+                                    <input type="number" id="input_outside_gen_${record.id}" step="0.01" placeholder="Borrow Qty">
+                                    <button class="add-material-btn" onclick="executeAddOutsideMaterial(${record.id}, false, '${activeCutter}')">Add ➕</button>
+                                </div>
+                            </div>`;
+                    }
+
+                    let timelineEntries = [];
+                    if(record.transferLogs) {
+                        record.transferLogs.forEach((log, lIdx) => {
+                            if (log.cutter === activeCutter) {
+                                let html = log.weight < 0 ? `<div style="padding: 2px 0; color:#c0392b; font-weight: bold; display:flex; justify-content:space-between; align-items:center;"><span>📉 Lent ${Math.abs(log.weight).toFixed(3)}${uAbbr} [${log.part}] to ${log.targetLot || 'N/A'}</span><button class="mini-edit-btn" style="background-color:#e74c3c; margin-left:5px;" onclick="deleteTransferLog(${record.id}, ${log.epoch || 0})">Delete</button></div>` : `<div style="padding: 2px 0; color:#2980b9; display:flex; justify-content:space-between; align-items:center;"><span>➡️ Received ${log.weight.toFixed(3)}${uAbbr} [${log.part}] (${log.time})</span><button class="mini-edit-btn" style="background-color:#e74c3c; margin-left:5px;" onclick="deleteTransferLog(${record.id}, ${log.epoch || 0})">Delete</button></div>`;
+                                timelineEntries.push({ time: log.epoch || 0, cycle: lIdx, html: html });
+                            }
+                        });
+                    }
+                    if (record.outsideMaterialLogs) {
+                        record.outsideMaterialLogs.forEach((log, lIdx) => {
+                            if (log.cutter === activeCutter) {
+                                timelineEntries.push({ time: log.epoch || 0, cycle: lIdx, html: `<div style="padding: 2px 0; color:#9b59b6; font-weight:bold; display:flex; justify-content:space-between; align-items:center;"><span>➕ Borrowed ${log.weight.toFixed(3)}${uAbbr} [${log.part}] from ${log.sourceLot}</span><button class="mini-edit-btn" style="background-color:#e74c3c; margin-left:5px;" onclick="deleteOutsideLog(${record.id}, ${log.epoch || 0})">Delete</button></div>` });
+                            }
+                        });
+                    }
+                    if(record.cuttingLogs) {
+                        record.cuttingLogs.forEach((log, lIdx) => {
+                            if (log.cutter === activeCutter) {
+                                let txt = record.isPolo ? `Body: ${log.bodyWeight}${uAbbr}, Collar: ${log.collarWeight}${uAbbr}` : (record.isGrs ? `Body: ${log.bodyWeight}${uAbbr}, Rib: ${log.ribWeight}${uAbbr}` : `${log.weight} ${uStr}`);
+                                let chText = log.challanNo && log.challanNo !== "N/A" ? ` [Ch: ${log.challanNo}]` : '';
+                                timelineEntries.push({ time: log.epoch || log.logId || 0, cycle: lIdx, html: `<div style="padding: 2px 0; color:#e67e22; display:flex; justify-content:space-between;"><span>✂️ Cut Entry: ${txt}${chText}</span> <div style="display:flex; gap:3px;"><button class="mini-edit-btn" onclick="editCuttingLog(${record.id}, ${log.logId})">Edit</button><button class="mini-edit-btn" style="background-color:#e74c3c;" onclick="deleteCuttingLog(${record.id}, ${log.logId})">Delete</button></div></div>` });
+                            }
+                        });
+                    }
+                    if (record.returnLogs) {
+                        record.returnLogs.forEach((log, lIdx) => {
+                            if (log.cutter === activeCutter) {
+                                let chText = log.challanNo && log.challanNo !== "N/A" ? ` [Ch: ${log.challanNo}]` : '';
+                                timelineEntries.push({ time: log.epoch || 0, cycle: lIdx, html: `<div style="padding: 2px 0; color:#2ecc71; display:flex; justify-content:space-between;"><span>⬅️ Returned ${log.weight.toFixed(3)}${uAbbr} [${log.part}] (${log.time})${chText}</span> <div style="display:flex; gap:3px;"><button class="mini-edit-btn" onclick="editReturnLog(${record.id}, ${log.epoch || 0})">Edit</button><button class="mini-edit-btn" style="background-color:#e74c3c;" onclick="deleteReturnLog(${record.id}, ${log.epoch || 0})">Delete</button></div></div>` });
+                            }
+                        });
+                    }
+
+                    timelineEntries.sort((a, b) => { if (a.time !== b.time) return a.time - b.time; return a.cycle - b.cycle; });
+                    let cutterLogsHTML = '<div class="cutting-history"><strong>📜 Activity Logs (Chronological Order):</strong><br>' + timelineEntries.map(e => e.html).join('') + '</div>';
+
+                    const cutCard = document.createElement('div'); cutCard.className = 'record-card';
+                    cutCard.innerHTML = `
+                        <div onclick="let d = this.nextElementSibling; d.style.display = d.style.display === 'none' ? 'block' : 'none'; this.querySelector('.toggle-indicator').innerText = d.style.display === 'none' ? '▼ Click to Open' : '▲ Click to Close';" style="cursor:pointer; position:relative; padding-right:110px;">
+                            <p><strong>Lot No:</strong> <span style="color:#e67e22;font-weight:bold;">${record.lotNumber || 'N/A'}</span> \| <strong>Quality:</strong> ${record.fabricName} \| <strong>Color:</strong> <span style="color:#3498db;font-weight:bold;">${record.fabricColor || 'NO COLOR'}</span> (GSM: ${record.gsm || 'N/A'})</p>
+                            ${cutterCardStockHTML}
+                            <div class="toggle-indicator" style="position:absolute; right:5px; top:50%; transform:translateY(-50%); font-size:11px; font-weight:bold; color:#e67e22; background:#fffcf4; padding:4px 8px; border-radius:4px; border:1px solid #ffe2b3;">▼ Click to Open</div>
+                        </div>
+                        <div class="card-expanded-details" style="display:none; border-top:1px dashed #cbd5e1; margin-top:10px; padding-top:5px;">
+                            ${cutterCardActionHTML} ${cutterLogsHTML}
+                        </div>`;
+                    cutterList.appendChild(cutCard);
+                }
+            }
+        });
+        if (activeCutterLotCount === 0 && activeCutter) { cutterList.innerHTML = `<p style="text-align:center; color:#94a3b8; padding:30px;">📂 No records found for ${activeCutter}.</p>`; }
+    }
+
+    function editCuttingLog(lotId, logId) {
+        let records = JSON.parse(localStorage.getItem('fabricRecords')) || [];
+        const lotIndex = records.findIndex(r => r.id === lotId);
+        if (lotIndex === -1) return; const currentRecord = records[lotIndex];
+        const logIndex = currentRecord.cuttingLogs.findIndex(l => l.logId === logId);
+        if (logIndex === -1) return; const currentLog = currentRecord.cuttingLogs[logIndex];
+
+        const selectedCutter = document.getElementById('cutterSelect').value;
+        let proposedW = currentLog.bodyWeight + currentLog.collarWeight + currentLog.ribWeight;
+
+        if (currentRecord.isPolo || currentRecord.isGrs) {
+            const newB = parseFloat(prompt("Edit Body Weight:", currentLog.bodyWeight)) || 0;
+            const newE = parseFloat(prompt("Edit Extra Weight:", currentRecord.isPolo ? currentLog.collarWeight : currentLog.ribWeight)) || 0;
+            proposedW = newB + newE;
+            
+            currentLog.bodyWeight = newB; if (currentRecord.isPolo) currentLog.collarWeight = newE; else currentLog.ribWeight = newE; currentLog.weight = proposedW;
+        } else {
+            const newW = parseFloat(prompt("Edit Cutting Weight:", currentLog.weight));
+            if (!isNaN(newW)) {
+                currentLog.weight = newW;
+            }
+        }
+        const newCh = prompt("Edit Cutting Challan No:", currentLog.challanNo || "");
+        if (newCh !== null) { currentLog.challanNo = newCh.trim() === "" ? "N/A" : newCh.trim().toUpperCase(); }
+        localStorage.setItem('fabricRecords', JSON.stringify(records)); loadRecords();
+    }
+
+    window.addEventListener('storage', function(e) { if (e.key === 'fabricRecords' || e.key === 'cutterList') { loadRecords(); } });
+</script>
+</body>
+</html>
+    </textarea>
+
+    <script>
+        const FILE_NAME = 'garments_tracker_data.json';
+        let dirHandle = null;
+
+        async function openApp(appType) {
+            if (!dirHandle) {
+                alert("Please select your data folder to sync your data file (" + FILE_NAME + ").");
+                try {
+                    dirHandle = await window.showDirectoryPicker();
+                    let fileHandle;
+                    let exists = true;
+                    try {
+                        fileHandle = await dirHandle.getFileHandle(FILE_NAME, { create: false });
+                    } catch (e) {
+                        exists = false;
+                    }
+
+                    if (exists) {
+                        const file = await fileHandle.getFile();
+                        const text = await file.text();
+                        if (text.trim()) {
+                            const data = JSON.parse(text);
+                            if (data.records) localStorage.setItem('fabricRecords', JSON.stringify(data.records));
+                            if (data.fabricList) localStorage.setItem('fabricList', JSON.stringify(data.fabricList));
+                            if (data.cutterList) localStorage.setItem('cutterList', JSON.stringify(data.cutterList));
+                        }
+                    } else {
+                        const fileHandleNew = await dirHandle.getFileHandle(FILE_NAME, { create: true });
+                        const writable = await fileHandleNew.createWritable();
+                        const data = {
+                            records: JSON.parse(localStorage.getItem('fabricRecords') || '[]'),
+                            fabricList: JSON.parse(localStorage.getItem('fabricList') || '[]'),
+                            cutterList: JSON.parse(localStorage.getItem('cutterList') || '[]')
+                        };
+                        await writable.write(JSON.stringify(data, null, 2));
+                        await writable.close();
+                    }
+                    
+                    setInterval(async () => {
+                        if (!dirHandle) return;
+                        try {
+                            const fh = await dirHandle.getFileHandle(FILE_NAME, { create: true });
+                            const w = await fh.createWritable();
+                            const d = {
+                                records: JSON.parse(localStorage.getItem('fabricRecords') || '[]'),
+                                fabricList: JSON.parse(localStorage.getItem('fabricList') || '[]'),
+                                cutterList: JSON.parse(localStorage.getItem('cutterList') || '[]')
+                            };
+                            await w.write(JSON.stringify(d, null, 2));
+                            await w.close();
+                        } catch (err) {}
+                    }, 2000);
+
+                } catch (err) {
+                    alert("Folder access is required to run the dashboard securely with auto-save.");
+                    return;
+                }
+            }
+
+            document.getElementById('homepage').style.display = 'none';
+            document.getElementById('app_container').style.display = 'flex';
+            
+            const titleEl = document.getElementById('current_app_title');
+            const iframe = document.getElementById('app_iframe');
+            let sourceCode = '';
+
+            if (appType === 'godown') {
+                titleEl.innerText = '📦 Godown Inventory System';
+                sourceCode = document.getElementById('godown_source').value;
+            } else if (appType === 'cutter') {
+                titleEl.innerText = '✂️ Cutter Room Tracking';
+                sourceCode = document.getElementById('cutter_source').value;
+            }
+
+            const blob = new Blob([sourceCode], { type: 'text/html' });
+            iframe.src = URL.createObjectURL(blob);
+        }
+
+        function goHome() {
+            document.getElementById('app_container').style.display = 'none';
+            document.getElementById('homepage').style.display = 'flex';
+            document.getElementById('app_iframe').src = 'about:blank';
+        }
+    </script>
+</body>
+</html>
