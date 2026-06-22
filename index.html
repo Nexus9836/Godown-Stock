@@ -1140,7 +1140,7 @@
 </html>
     </textarea>
 
-    <textarea id="cutter_source" style="display:none;">
+    <div id="cutter_source" style="display:none;">
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -1496,7 +1496,7 @@
                     }
                     if (currentCutterHand.rib > 0 && remainingToDeduct > 0) {
                         let deductRib = Math.min(remainingToDeduct, currentCutterHand.rib);
-                        srcRec.transferLogs.push({ cutter: selectedCutter, part: 'BODY', weight: -deductRib, time: timestamp, epoch: epochBase + i * 10 + 1 });
+                        srcRec.transferLogs.push({ cutter: selectedCutter, part: 'RIB', weight: -deductRib, time: timestamp, epoch: epochBase + i * 10 + 1 });
                     }
                 }
             } else {
