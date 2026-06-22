@@ -1140,7 +1140,7 @@
 </html>
     </textarea>
 
-    <div id="cutter_source" style="display:none;">
+    <textarea id="cutter_source" style="display:none;">
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -1496,7 +1496,7 @@
                     }
                     if (currentCutterHand.rib > 0 && remainingToDeduct > 0) {
                         let deductRib = Math.min(remainingToDeduct, currentCutterHand.rib);
-                        srcRec.transferLogs.push({ cutter: selectedCutter, part: 'RIB', weight: -deductRib, time: timestamp, epoch: epochBase + i * 10 + 1 });
+                        srcRec.transferLogs.push({ cutter: selectedCutter, part: 'BODY', weight: -deductRib, time: timestamp, epoch: epochBase + i * 10 + 1 });
                     }
                 }
             } else {
@@ -1583,8 +1583,13 @@
             if (eVal > 0) currentRec.outsideMaterialLogs.push({ cutter: selectedCutter, part: currentRec.isPolo ? 'COLLAR' : 'RIB', weight: eVal, sourceLot: sourceRec.lotNumber, time: timestamp, epoch: currentEpoch + 4 });
         } else {
             const gVal = parseFloat(document.getElementById(`input_outside_gen_${id}`).value) || 0; if (gVal <= 0) return;
-            if (gVal > sourceStocks.general) { alert(`❌ Borrow Denied!`); return; }
-            sourceRec.transferLogs.push({ cutter: selectedCutter, part: 'GENERAL', weight: -gVal, time: timestamp, targetLot: currentRec.lotNumber, epoch: currentEpoch });
+            if (sourceRec.isPolo || sourceRec.isGrs) {
+                if (gVal > sourceStocks.body) { alert(`❌ Borrow Denied!`); return; }
+                sourceRec.transferLogs.push({ cutter: selectedCutter, part: 'BODY', weight: -gVal, time: timestamp, targetLot: currentRec.lotNumber, epoch: currentEpoch });
+            } else {
+                if (gVal > sourceStocks.general) { alert(`❌ Borrow Denied!`); return; }
+                sourceRec.transferLogs.push({ cutter: selectedCutter, part: 'GENERAL', weight: -gVal, time: timestamp, targetLot: currentRec.lotNumber, epoch: currentEpoch });
+            }
             sourceRec.transferLogs.push({ cutter: `LENT TO LOT ${currentRec.lotNumber}`, part: 'GENERAL', weight: gVal, time: timestamp, epoch: currentEpoch + 1 });
             if (!currentRec.outsideMaterialLogs) currentRec.outsideMaterialLogs = [];
             currentRec.outsideMaterialLogs.push({ cutter: selectedCutter, part: 'GENERAL', weight: gVal, sourceLot: sourceRec.lotNumber, time: timestamp, epoch: currentEpoch + 2 });
