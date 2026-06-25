@@ -242,6 +242,9 @@
                 <input type="number" id="godownLayerNewGsm" inputmode="numeric" placeholder="GSM (Optional)">
             </div>
             <div class="action-row-split" style="margin-top: 4px;">
+                <input type="text" id="searchGodownMergeLotInput" placeholder="🔍 SEARCH LOT TO MERGE..." onkeyup="filterGodownMergeLots()" oninput="this.value = this.value.toUpperCase()">
+            </div>
+            <div class="action-row-split" style="margin-top: 4px;">
                 <select id="godownLayerSourceLotSelect"><option value="">-- Loading Godown Lots --</option></select>
                 <button type="button" style="background: #3498db;" onclick="addLotToGodownLayerQueue()">➕ Add Lot</button>
             </div>
@@ -389,6 +392,21 @@
         });
     }
 
+    function filterGodownMergeLots() {
+        const query = document.getElementById('searchGodownMergeLotInput').value.toUpperCase().trim();
+        const select = document.getElementById('godownLayerSourceLotSelect');
+        const options = select.options;
+        for (let i = 0; i < options.length; i++) {
+            if (i === 0) continue;
+            const txt = options[i].text.toUpperCase();
+            if (txt.includes(query)) {
+                options[i].style.display = "block";
+            } else {
+                options[i].style.display = "none";
+            }
+        }
+    }
+
     function addLotToGodownLayerQueue() {
         const lotId = parseInt(document.getElementById('godownLayerSourceLotSelect').value);
         if (!lotId) return;
@@ -471,7 +489,7 @@
         };
 
         records.unshift(mergedRecord); localStorage.setItem('fabricRecords', JSON.stringify(records));
-        godownLayerQueue = []; document.getElementById('godownLayerNewLotNumber').value = ''; document.getElementById('godownLayerNewGsm').value = ''; document.getElementById('godownLayerSelectedItemsContainer').innerHTML = 'No lots queued up yet.';
+        godownLayerQueue = []; document.getElementById('godownLayerNewLotNumber').value = ''; document.getElementById('godownLayerNewGsm').value = ''; document.getElementById('searchGodownMergeLotInput').value = ''; document.getElementById('godownLayerSelectedItemsContainer').innerHTML = 'No lots queued up yet.';
         loadRecords(); alert(`Successfully merged into Godown Lot: ${newLotNo}`);
     }
 
@@ -1214,6 +1232,9 @@
                 <input type="number" id="layerNewGsm" inputmode="numeric" placeholder="GSM (Optional)">
             </div>
             <div class="action-row-split" style="margin-top: 4px;">
+                <input type="text" id="searchCutterLayerLotInput" placeholder="🔍 SEARCH LOT TO LAYER..." onkeyup="filterCutterLayerLots()" oninput="this.value = this.value.toUpperCase()">
+            </div>
+            <div class="action-row-split" style="margin-top: 4px;">
                 <select id="layerSourceLotSelect"><option value="">-- Loading Running Lots --</option></select>
                 <button class="add-material-btn" style="background: #9b59b6;" onclick="addLotToCurrentLayerQueue()">➕ Add to Layer</button>
             </div>
@@ -1352,6 +1373,21 @@
                 }
             }
         });
+    }
+
+    function filterCutterLayerLots() {
+        const query = document.getElementById('searchCutterLayerLotInput').value.toUpperCase().trim();
+        const select = document.getElementById('layerSourceLotSelect');
+        const options = select.options;
+        for (let i = 0; i < options.length; i++) {
+            if (i === 0) continue;
+            const txt = options[i].text.toUpperCase();
+            if (txt.includes(query)) {
+                options[i].style.display = "block";
+            } else {
+                options[i].style.display = "none";
+            }
+        }
     }
 
     function updateGlobalReturnFieldsVisibility() {
@@ -1518,7 +1554,7 @@
         };
 
         records.unshift(mergedLayerRecord); localStorage.setItem('fabricRecords', JSON.stringify(records));
-        currentLayerQueue = []; document.getElementById('layerNewLotNumber').value = ''; document.getElementById('layerNewGsm').value = ''; document.getElementById('layerSelectedItemsContainer').innerHTML = 'No lots queued up yet.';
+        currentLayerQueue = []; document.getElementById('layerNewLotNumber').value = ''; document.getElementById('layerNewGsm').value = ''; document.getElementById('searchCutterLayerLotInput').value = ''; document.getElementById('layerSelectedItemsContainer').innerHTML = 'No lots queued up yet.';
         loadRecords(); alert(`Successfully merged into Lot: ${newLotNo}`);
     }
 
