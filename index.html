@@ -467,7 +467,7 @@
             id: Date.now(), date: new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' }),
             fabricName: fabricQualitiesFound[0] || "MICRO MODAL", fabricColor: finalColor, isPolo: false, isGrs: false, lotNumber: newLotNo, batchNumber: "GODOWN-MIX", ribLotNumber: "N/A", ribBatchNumber: "GODOWN-MIX", gsm: document.getElementById('godownLayerNewGsm').value.trim() || "N/A",
             rollWeight: totalMergedWeight, bodyWeight: totalMergedWeight, collarWeight: 0, ribWeight: 0, remainingBodyWH: 0, remainingCollarWH: 0, remainingRibWH: 0, remainingGeneralWH: totalMergedWeight, totalCutWeight: 0, cuttingLogs: [],
-            transferLogs: [], returnLogs: [], outsideMaterialLogs: [{ cutter: "GODOWN ADMIN", part: "GENERAL", weight: totalMergedWeight, sourceLot: historyTrackingNote.replace(/,\s*$/, ""), time: timestamp, epoch: epochBase + i }]
+            transferLogs: [], returnLogs: [], outsideMaterialLogs: [{ cutter: "GODOWN ADMIN", part: "GENERAL", weight: totalMergedWeight, sourceLot: historyTrackingNote.replace(/,\s*$/, ""), time: timestamp, epoch: epochBase + godownLayerQueue.length }]
         };
 
         records.unshift(mergedRecord); localStorage.setItem('fabricRecords', JSON.stringify(records));
