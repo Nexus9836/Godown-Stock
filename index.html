@@ -158,12 +158,32 @@ button{
 
 .form-grid{
     display:grid;
-    grid-template-columns:1fr 1fr;
+    grid-template-columns:repeat(12, 1fr);
     gap:10px 14px;
 }
 
 .field{
     min-width:0;
+}
+
+.col-3{
+    grid-column:span 3;
+}
+
+.col-4{
+    grid-column:span 4;
+}
+
+.col-5{
+    grid-column:span 5;
+}
+
+.col-6{
+    grid-column:span 6;
+}
+
+.col-12{
+    grid-column:span 12;
 }
 
 .field label{
@@ -227,21 +247,18 @@ button{
 
 table{
     width:100%;
-    min-width:0;
     border-collapse:collapse;
-    table-layout:fixed;
 }
 
-.history-table{
-    width:100%;
-    min-width:0;
+.lot-history-table{
+    min-width:820px;
+    table-layout:auto;
 }
 
 .history-table th,
 .history-table td{
-    padding:5px 4px;
-    white-space:normal;
-    word-break:break-word;
+    padding:7px 8px;
+    white-space:nowrap;
 }
 
 .issue-history-table th:nth-child(1),
@@ -292,19 +309,17 @@ table{
 th{
     background:#f1f5f9;
     color:#475569;
-    font-size:10px;
+    font-size:11px;
     text-transform:uppercase;
-    padding:7px 4px;
+    padding:9px 8px;
     border-bottom:1px solid #cbd5e1;
 }
 
 td{
-    padding:6px 4px;
+    padding:8px 8px;
     border-bottom:1px solid #e2e8f0;
-    font-size:11px;
+    font-size:12px;
     white-space:nowrap;
-    overflow:hidden;
-    text-overflow:ellipsis;
     text-align:center;
 }
 
@@ -341,7 +356,7 @@ tr:hover td{
     border:0;
     border-radius:4px;
     padding:5px 7px;
-    font-size:9px;
+    font-size:10px;
     font-weight:700;
     margin:1px;
 }
@@ -535,10 +550,25 @@ tr:hover td{
 
 @media(max-width:650px){
     .container{
-        padding:10px;
+        padding:8px;
     }
 
-    .form-grid,
+    .form-grid{
+        gap:8px 8px;
+    }
+
+    .field label{
+        font-size:10px;
+        margin-bottom:3px;
+    }
+
+    .input,
+    .select{
+        height:35px;
+        padding:0 6px;
+        font-size:12px;
+    }
+
     .search-grid,
     .operation-grid{
         grid-template-columns:1fr;
@@ -546,49 +576,6 @@ tr:hover td{
 
     .stats{
         grid-template-columns:1fr 1fr;
-    }
-
-    .table-wrap{
-        overflow-x:auto;
-    }
-
-    table{
-        min-width:0;
-    }
-
-    .lot-history-table th,
-    .lot-history-table td{
-        padding:4px 2px;
-        font-size:8.5px;
-        line-height:1.2;
-        word-break:break-word;
-    }
-
-    .lot-history-table .small-btn{
-        display:block;
-        width:100%;
-        box-sizing:border-box;
-        padding:4px 2px;
-        font-size:8px;
-        margin:1px 0;
-    }
-
-    .lot-history-table small{
-        font-size:7px;
-    }
-
-    .issue-history-table th,
-    .issue-history-table td,
-    .return-history-table th,
-    .return-history-table td{
-        padding:4px 3px;
-        font-size:9px;
-    }
-
-    .issue-history-table .small-btn,
-    .return-history-table .small-btn{
-        padding:4px 3px;
-        font-size:8px;
     }
 
     .detail-grid{
@@ -633,45 +620,47 @@ tr:hover td{
 
             <div class="form-grid">
 
-                <div class="field">
+                <!-- ROW 1: Fabric Quality | Entry Date -->
+                <div class="field col-6">
                     <label>Fabric Quality</label>
-
                     <select id="quality" class="select" onchange="updateColorDropdown()"></select>
                 </div>
 
-                <div class="field">
+                <div class="field col-6">
+                    <label>Entry Date</label>
+                    <input id="entryDate" class="input" type="date">
+                </div>
+
+                <!-- ROW 2: Lot Number | Batch Number -->
+                <div class="field col-6">
                     <label>Lot Number</label>
                     <input id="lotNumber" class="input uppercase" type="text">
                 </div>
 
-                <div class="field">
+                <div class="field col-6">
                     <label>Batch Number</label>
                     <input id="batchNumber" class="input uppercase" type="text">
                 </div>
 
-                <div class="field">
+                <!-- ROW 3: Color (4) | GSM (3) | Stock Quantity (5) -->
+                <div class="field col-4">
                     <label>Color</label>
-
                     <select id="color" class="select"></select>
                 </div>
 
-                <div class="field">
+                <div class="field col-3">
                     <label>GSM</label>
                     <input
                         id="gsm"
                         class="input"
                         type="text"
                         inputmode="decimal"
-                        placeholder="Example: 180"
+                        placeholder="0"
                     >
-                    <div class="info-text">
-                        GSM exactly as entered. 180 দিলে 180 দেখাবে.
-                    </div>
                 </div>
 
-                <div class="field">
+                <div class="field col-5">
                     <label>Stock Quantity</label>
-
                     <div class="input-group">
                         <input
                             id="originalQty"
@@ -682,21 +671,16 @@ tr:hover td{
                             placeholder="0.000"
                         >
 
-                        <select id="unit" class="select" style="max-width:110px;">
+                        <select id="unit" class="select" style="max-width:75px;">
                             <option value="KG">KG</option>
                             <option value="METER">METER</option>
                         </select>
                     </div>
                 </div>
 
-                <div class="field">
-                    <label>Entry Date</label>
-                    <input id="entryDate" class="input" type="date">
-                </div>
-
-                <div class="field">
+                <!-- ROW 4: Action Buttons -->
+                <div class="field col-12">
                     <label>Actions</label>
-
                     <div class="action-row">
                         <button id="lotSaveBtn" class="btn btn-success" onclick="saveLot()">💾 SAVE</button>
                         <button id="lotClearBtn" class="btn btn-light" onclick="resetForm()">CLEAR</button>
@@ -736,7 +720,7 @@ tr:hover td{
                 <input
                     id="historyLot"
                     class="input uppercase"
-                    placeholder="SEARCH LOT NUMBER"
+                    placeholder="SEARCH QUALITY, LOT OR BATCH"
                     oninput="renderLots()"
                 >
 
@@ -756,16 +740,16 @@ tr:hover td{
 
                     <thead>
                         <tr>
-                            <th style="width:28px;">✓</th>
+                            <th style="width:36px;">✓</th>
                             <th>Quality</th>
                             <th>Lot</th>
                             <th>Batch</th>
                             <th>Color</th>
                             <th>GSM</th>
-                            <th>Original Weight</th>
-                            <th>Balance Weight</th>
+                            <th>Quantity</th>
+                            <th>Balance</th>
                             <th>Date</th>
-                            <th style="width:125px;">Action</th>
+                            <th style="width:140px;">Action</th>
                         </tr>
                     </thead>
 
@@ -3260,11 +3244,15 @@ function getFilteredLots(){
             return false;
         }
 
-        if(
-            lotSearch &&
-            !lot.lotNumber.includes(lotSearch)
-        ){
-            return false;
+        if(lotSearch){
+            const matchesLot = lot.lotNumber.includes(lotSearch);
+            const matchesBatch = (lot.batchNumber || "").includes(lotSearch);
+            const matchesQuality = (lot.quality || "").includes(lotSearch);
+            const matchesCode = (lot.qualityCode || "").includes(lotSearch);
+
+            if(!matchesLot && !matchesBatch && !matchesQuality && !matchesCode){
+                return false;
+            }
         }
 
         return true;
