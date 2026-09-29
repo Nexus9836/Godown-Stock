@@ -1651,12 +1651,12 @@ function addQuality(){
 
     const exists =
         qualities.some(
-            q => q.name === name
+            q => q.name === name && q.code === code
         );
 
     if(exists){
 
-        showToast("Quality already exists");
+        showToast("Quality with this code already exists");
         return;
     }
 
