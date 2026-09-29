@@ -1326,6 +1326,11 @@ function escapeHTML(value){
 }
 
 
+function formatUnitDisplay(unit){
+    return unit === "METER" ? "M" : (unit || "KG");
+}
+
+
 function showToast(message){
 
     const toast = document.getElementById("toast");
@@ -2303,16 +2308,16 @@ function renderLotDetails(){
         lot.gsm;
 
     document.getElementById("detailOriginal").textContent =
-        formatQty(lot.originalQty) + " " + lot.unit;
+        formatQty(lot.originalQty) + " " + formatUnitDisplay(lot.unit);
 
     document.getElementById("detailIssued").textContent =
-        formatQty(getTotalIssued(lot)) + " " + lot.unit;
+        formatQty(getTotalIssued(lot)) + " " + formatUnitDisplay(lot.unit);
 
     document.getElementById("detailBalance").textContent =
         formatQty(getLotBalance(lot));
 
     document.getElementById("detailUnit").textContent =
-        lot.unit;
+        formatUnitDisplay(lot.unit);
 
 
     document.getElementById("issueDate").value=today();
@@ -2373,7 +2378,7 @@ function addIssue(){
     if(qty > available + 0.000001){
 
         showToast(
-            `Only ${formatQty(available)} ${lot.unit} available in lot`
+            `Only ${formatQty(available)} ${formatUnitDisplay(lot.unit)} available in lot`
         );
 
         return;
@@ -2439,7 +2444,7 @@ function addCutting(){
     if(qty > available + 0.000001){
 
         showToast(
-            `Cutter has only ${formatQty(available)} ${lot.unit} available`
+            `Cutter has only ${formatQty(available)} ${formatUnitDisplay(lot.unit)} available`
         );
 
         return;
@@ -2508,7 +2513,7 @@ function addReturn(){
     if(qty > available + 0.000001){
 
         showToast(
-            `Cutter can return maximum ${formatQty(available)} ${lot.unit}`
+            `Cutter can return maximum ${formatQty(available)} ${formatUnitDisplay(lot.unit)}`
         );
 
         return;
@@ -2567,7 +2572,7 @@ function renderIssueHistory(lot){
                 <td>${escapeHTML(x.issueDate)}</td>
 
                 <td>
-                    ${formatQty(x.issueQty)} ${lot.unit}
+                    ${formatQty(x.issueQty)} ${formatUnitDisplay(lot.unit)}
                 </td>
 
                 <td>${escapeHTML(x.remark || "—")}</td>
@@ -2630,7 +2635,7 @@ function renderCuttingHistory(lot){
                 <td>${escapeHTML(x.cuttingDate)}</td>
 
                 <td>
-                    ${formatQty(x.cuttingQty)} ${lot.unit}
+                    ${formatQty(x.cuttingQty)} ${formatUnitDisplay(lot.unit)}
                 </td>
 
                 <td>
@@ -2691,7 +2696,7 @@ function renderReturnHistory(lot){
                 <td>${escapeHTML(x.returnDate)}</td>
 
                 <td>
-                    ${formatQty(x.returnQty)} ${lot.unit}
+                    ${formatQty(x.returnQty)} ${formatUnitDisplay(lot.unit)}
                 </td>
 
                 <td>${escapeHTML(x.remark || "—")}</td>
@@ -2849,7 +2854,7 @@ function deleteCutting(id){
 
     if(
         !confirm(
-            `Delete cutting ${formatQty(item.cuttingQty)} ${lot.unit}?`
+            `Delete cutting ${formatQty(item.cuttingQty)} ${formatUnitDisplay(lot.unit)}?`
         )
     ) return;
 
@@ -3000,7 +3005,7 @@ function deleteReturn(id){
 
     if(
         !confirm(
-            `Delete return ${formatQty(item.returnQty)} ${lot.unit}?`
+            `Delete return ${formatQty(item.returnQty)} ${formatUnitDisplay(lot.unit)}?`
         )
     ) return;
 
@@ -3192,7 +3197,7 @@ function deleteIssue(id){
 
     if(
         !confirm(
-            `Delete issue ${formatQty(oldQty)} ${lot.unit}?`
+            `Delete issue ${formatQty(oldQty)} ${formatUnitDisplay(lot.unit)}?`
         )
     ) return;
 
@@ -3342,6 +3347,9 @@ function renderLots(){
             const balance =
                 getLotBalance(lot);
 
+            const unitText =
+                formatUnitDisplay(lot.unit);
+
             return `
 
                 <tr>
@@ -3376,12 +3384,12 @@ function renderLots(){
 
                     <td>
                         ${formatQty(original)}
-                        <small>${lot.unit}</small>
+                        <small>${unitText}</small>
                     </td>
 
                     <td>
                         <span class="badge badge-green">
-                            ${formatQty(balance)}
+                            ${formatQty(balance)} ${unitText}
                         </span>
                     </td>
 
@@ -3515,7 +3523,7 @@ function viewSelectedLots(){
                     </td>
 
                     <td>
-                        ${lot.unit}
+                        ${formatUnitDisplay(lot.unit)}
                     </td>
 
                 </tr>
