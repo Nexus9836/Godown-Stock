@@ -586,10 +586,118 @@ tr:hover td{
         padding:12px;
     }
 }
+
+/* ===== Zoom In / Out ===== */
+.header,
+.container{
+    zoom:var(--page-zoom,1);
+}
+
+.modal-box{
+    zoom:var(--page-zoom,1);
+    max-height:calc(92vh / var(--page-zoom,1));
+}
+
+#zoomControls{
+    position:fixed;
+    left:12px;
+    bottom:12px;
+    z-index:900;
+    display:flex;
+    align-items:center;
+}
+
+#zoomControls button{
+    touch-action:manipulation;
+    user-select:none;
+    -webkit-user-select:none;
+}
+
+#zoomToggleBtn{
+    width:40px;
+    height:40px;
+    border:0;
+    border-radius:50%;
+    background:rgba(17,24,39,.82);
+    color:#fff;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    box-shadow:0 4px 14px rgba(0,0,0,.3);
+}
+
+#zoomPanel{
+    display:none;
+    align-items:center;
+    background:#fff;
+    border:1px solid #cbd5e1;
+    border-radius:999px;
+    box-shadow:0 4px 14px rgba(0,0,0,.25);
+    overflow:hidden;
+    margin-left:8px;
+}
+
+#zoomPanel.open{
+    display:flex;
+}
+
+#zoomPanel button{
+    height:40px;
+    border:0;
+    background:#fff;
+    color:#334155;
+    font-weight:800;
+}
+
+#zoomPanel button:active{
+    background:#e2e8f0;
+}
+
+#zoomPanel button:disabled{
+    opacity:.3;
+}
+
+#zoomOutBtn,
+#zoomInBtn{
+    width:40px;
+    font-size:20px;
+}
+
+#zoomLevelBtn{
+    min-width:52px;
+    padding:0 4px;
+    font-size:12px;
+    border-left:1px solid #e2e8f0 !important;
+    border-right:1px solid #e2e8f0 !important;
+}
+
+@media print{
+    .header,
+    .container,
+    .modal-box{
+        zoom:1 !important;
+    }
+
+    #zoomControls{
+        display:none !important;
+    }
+}
 </style>
 </head>
 
 <body>
+<!-- Zoom In / Out controls (hidden by default; tap the magnifier to open, auto-closes) -->
+<div id="zoomControls">
+    <button type="button" id="zoomToggleBtn" onclick="toggleZoomPanel()" title="Zoom" aria-label="Zoom options" aria-expanded="false">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-4.35-4.35M11 19a8 8 0 100-16 8 8 0 000 16zM8 11h6M11 8v6"/></svg>
+    </button>
+    <div id="zoomPanel">
+        <button type="button" id="zoomOutBtn" onclick="zoomOut()" title="Zoom out" aria-label="Zoom out">&minus;</button>
+        <button type="button" id="zoomLevelBtn" onclick="zoomReset()" title="Reset to 100%" aria-label="Reset zoom">100%</button>
+        <button type="button" id="zoomInBtn" onclick="zoomIn()" title="Zoom in" aria-label="Zoom in">+</button>
+    </div>
+</div>
+
 
 <header class="header">
     <div class="logo">Fabric<span>Pro</span> - Fabric Lot Management</div>
@@ -3943,6 +4051,85 @@ document.addEventListener(
     }
 );
 
+
+/* =========================
+   ZOOM IN / OUT
+========================= */
+
+const ZOOM_MIN = 50;
+const ZOOM_MAX = 200;
+const ZOOM_STEP = 10;
+const ZOOM_KEY = "fabricpro_pageZoom";
+
+let pageZoom = 100;
+let zoomPanelTimer = null;
+
+function applyZoom(){
+    document.documentElement.style.setProperty("--page-zoom", String(pageZoom / 100));
+
+    const lbl = document.getElementById("zoomLevelBtn");
+    if(lbl) lbl.textContent = pageZoom + "%";
+
+    const outBtn = document.getElementById("zoomOutBtn");
+    const inBtn = document.getElementById("zoomInBtn");
+    if(outBtn) outBtn.disabled = pageZoom <= ZOOM_MIN;
+    if(inBtn) inBtn.disabled = pageZoom >= ZOOM_MAX;
+}
+
+function saveZoom(){
+    try{ localStorage.setItem(ZOOM_KEY, String(pageZoom)); }catch(e){}
+}
+
+function setZoom(v){
+    v = Math.round(Number(v) / ZOOM_STEP) * ZOOM_STEP;
+    if(!isFinite(v)) v = 100;
+    pageZoom = Math.min(ZOOM_MAX, Math.max(ZOOM_MIN, v));
+    applyZoom();
+    saveZoom();
+}
+
+function setZoomPanel(open){
+    const panel = document.getElementById("zoomPanel");
+    const btn = document.getElementById("zoomToggleBtn");
+    if(!panel) return;
+
+    panel.classList.toggle("open", open);
+    if(btn) btn.setAttribute("aria-expanded", open ? "true" : "false");
+
+    clearTimeout(zoomPanelTimer);
+    if(open){
+        zoomPanelTimer = setTimeout(function(){ setZoomPanel(false); }, 4000);
+    }
+}
+
+function toggleZoomPanel(){
+    const panel = document.getElementById("zoomPanel");
+    setZoomPanel(!(panel && panel.classList.contains("open")));
+}
+
+function keepZoomPanelOpen(){
+    const panel = document.getElementById("zoomPanel");
+    if(panel && panel.classList.contains("open")) setZoomPanel(true);
+}
+
+function zoomIn(){ setZoom(pageZoom + ZOOM_STEP); keepZoomPanelOpen(); }
+function zoomOut(){ setZoom(pageZoom - ZOOM_STEP); keepZoomPanelOpen(); }
+function zoomReset(){ setZoom(100); keepZoomPanelOpen(); }
+
+document.addEventListener("pointerdown", function(e){
+    const box = document.getElementById("zoomControls");
+    if(box && !box.contains(e.target)) setZoomPanel(false);
+});
+
+(function initZoom(){
+    try{
+        const saved = parseInt(localStorage.getItem(ZOOM_KEY), 10);
+        if(isFinite(saved)){
+            pageZoom = Math.min(ZOOM_MAX, Math.max(ZOOM_MIN, saved));
+        }
+    }catch(e){}
+    applyZoom();
+})();
 
 init();
 
