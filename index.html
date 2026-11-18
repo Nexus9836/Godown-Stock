@@ -890,13 +890,6 @@ tr:hover td{
                 <input id="newQuality" class="input uppercase">
             </div>
 
-            <div style="height:8px;"></div>
-
-            <div class="field">
-                <label>Quality Code</label>
-                <input id="newQualityCode" class="input uppercase">
-            </div>
-
             <div style="height:10px;"></div>
 
             <button class="btn btn-success" onclick="addQuality()">＋ ADD QUALITY</button>
@@ -970,11 +963,6 @@ tr:hover td{
                 <div class="detail-card">
                     <div class="detail-label">Quality</div>
                     <div class="detail-value" id="detailQuality"></div>
-                </div>
-
-                <div class="detail-card">
-                    <div class="detail-label">Quality Code</div>
-                    <div class="detail-value" id="detailQualityCode"></div>
                 </div>
 
                 <div class="detail-card">
@@ -1325,7 +1313,6 @@ tr:hover td{
                 <li>All Return History</li>
                 <li>All Issue History</li>
                 <li>All Fabric Qualities</li>
-                <li>All Quality Codes</li>
                 <li>All Quality Colors</li>
             </ul>
 
@@ -1388,13 +1375,13 @@ let selectedLotIds = new Set();
 ========================= */
 
 const defaultQualities = [
-    {id:"q1", name:"Single Jersey", code:"SJ"},
-    {id:"q2", name:"Pique", code:"PQ"},
-    {id:"q3", name:"Rib", code:"RB"},
-    {id:"q4", name:"Interlock", code:"IL"},
-    {id:"q5", name:"Fleece", code:"FL"},
-    {id:"q6", name:"Terry", code:"TR"},
-    {id:"q7", name:"French Terry", code:"FT"}
+    {id:"q1", name:"Single Jersey"},
+    {id:"q2", name:"Pique"},
+    {id:"q3", name:"Rib"},
+    {id:"q4", name:"Interlock"},
+    {id:"q5", name:"Fleece"},
+    {id:"q6", name:"Terry"},
+    {id:"q7", name:"French Terry"}
 ];
 
 
@@ -1531,8 +1518,6 @@ function normalizeLot(lot){
         qualityId: lot.qualityId || "",
 
         quality: normalizeText(lot.quality || ""),
-
-        qualityCode: normalizeText(lot.qualityCode || ""),
 
         lotNumber: normalizeText(lot.lotNumber || ""),
 
@@ -1693,8 +1678,7 @@ function renderQualityDropdown(){
 
     qualities.forEach(q=>{
 
-        const optionText =
-            `${q.name} (${q.code})`;
+        const optionText = q.name;
 
         quality.innerHTML +=
             `<option value="${escapeHTML(q.id)}">
@@ -1746,33 +1730,27 @@ function addQuality(){
             document.getElementById("newQuality").value
         );
 
-    const code =
-        normalizeText(
-            document.getElementById("newQualityCode").value
-        );
+    if(!name){
 
-    if(!name || !code){
-
-        showToast("Enter quality and quality code");
+        showToast("Enter fabric quality");
         return;
     }
 
     const exists =
         qualities.some(
-            q => q.name === name && q.code === code
+            q => q.name === name
         );
 
     if(exists){
 
-        showToast("Quality with this code already exists");
+        showToast("This quality already exists");
         return;
     }
 
     const q = {
 
         id:generateId("quality"),
-        name:name,
-        code:code
+        name:name
     };
 
     qualities.push(q);
@@ -1783,7 +1761,6 @@ function addQuality(){
     saveColors();
 
     document.getElementById("newQuality").value="";
-    document.getElementById("newQualityCode").value="";
 
     renderQualityDropdown();
 
@@ -1854,7 +1831,6 @@ function renderQualityList(){
 
                 <div>
                     <strong>${escapeHTML(q.name)}</strong>
-                    <span class="badge">${escapeHTML(q.code)}</span>
                 </div>
 
                 <button
@@ -2206,7 +2182,6 @@ function saveLot(){
 
         lot.qualityId=qualityId;
         lot.quality=quality.name;
-        lot.qualityCode=quality.code;
         lot.lotNumber=lotNumber;
         lot.batchNumber=batchNumber;
         lot.color=color;
@@ -2226,8 +2201,6 @@ function saveLot(){
             qualityId:qualityId,
 
             quality:quality.name,
-
-            qualityCode:quality.code,
 
             lotNumber:lotNumber,
 
@@ -2402,9 +2375,6 @@ function renderLotDetails(){
 
     document.getElementById("detailQuality").textContent =
         lot.quality;
-
-    document.getElementById("detailQualityCode").textContent =
-        lot.qualityCode;
 
     document.getElementById("detailBatch").textContent =
         lot.batchNumber;
@@ -3361,9 +3331,8 @@ function getFilteredLots(){
             const matchesLot = lot.lotNumber.includes(lotSearch);
             const matchesBatch = (lot.batchNumber || "").includes(lotSearch);
             const matchesQuality = (lot.quality || "").includes(lotSearch);
-            const matchesCode = (lot.qualityCode || "").includes(lotSearch);
 
-            if(!matchesLot && !matchesBatch && !matchesQuality && !matchesCode){
+            if(!matchesLot && !matchesBatch && !matchesQuality){
                 return false;
             }
         }
@@ -3772,9 +3741,7 @@ function importData(event){
 
                     id:q.id || generateId("quality"),
 
-                    name:normalizeText(q.name),
-
-                    code:normalizeText(q.code)
+                    name:normalizeText(q.name)
 
                 }));
 
